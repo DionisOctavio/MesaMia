@@ -52,17 +52,21 @@ export default function AdminPage() {
   const handleShareAdmin = async () => {
     const adminCode = dinner?.adminCode;
     if (!adminCode) {
-      toast.error('Esta cena no tiene código de colaborador. Recréala para generarlo.');
+      toast.error('Esta cena no tiene código de colaborador.');
       return;
     }
-    setAdminCodeModal(true);
-    // Also try clipboard silently
     const url = `${window.location.origin}/dinner/${adminCode}`;
+    setAdminCodeModal(true);
     try {
-      await navigator.clipboard.writeText(url);
-      setAdminCopied(true);
-      setTimeout(() => setAdminCopied(false), 3000);
-    } catch { /* clipboard not available, user sees the modal */ }
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setAdminCopied(true);
+        toast.success('Enlace de colaborador copiado');
+        setTimeout(() => setAdminCopied(false), 3000);
+      }
+    } catch {
+      toast.error('No se pudo copiar automáticamente');
+    }
   };
 
   const handleDeleteFamily = async (id: string, name: string) => {
@@ -133,7 +137,7 @@ export default function AdminPage() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Panel de Control ({dinner.mode})
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-brand uppercase tracking-tight leading-none mb-2 truncate">{dinner.name}</h1>
-              <p className="text-slate-500 font-bold text-sm">{dinner.restaurant} • <span className="text-brand select-all font-mono">{dinner.code}</span></p>
+              <p className="text-slate-600 font-bold text-sm tracking-tight">{dinner.restaurant} • <span className="text-brand select-all font-mono bg-brand-ultra-light px-2 py-1 rounded-lg ml-1">{dinner.code}</span></p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:flex gap-2 sm:gap-3 w-full sm:w-auto flex-shrink-0">
               <Link href={`/admin/${code}/edit`} className="px-4 sm:px-6 py-3 sm:py-4 bg-white text-brand border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest transition-all hover:bg-slate-50 shadow-md">
@@ -154,7 +158,7 @@ export default function AdminPage() {
 
         <div className="mb-8 flex flex-wrap items-center gap-4">
            <div className="flex items-center gap-2">
-             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Organizadores:</span>
+             <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
              <div className="flex -space-x-2">
                {(dinner.organizers || []).map((org: any, i: number) => (
                  <div key={i} className="w-8 h-8 rounded-full bg-brand border-2 border-white flex items-center justify-center text-[10px] text-white font-black" title={org.phone}>
@@ -182,8 +186,8 @@ export default function AdminPage() {
                 <div key={i} className="p-6 md:p-8 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex flex-row sm:flex-col items-center sm:items-start gap-4 transition-all hover:scale-[1.02]">
                   <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0"><stat.icon className="w-5 h-5" /></div>
                   <div className="text-left">
-                    <div className="text-2xl md:text-3xl font-black leading-none">{stat.value}</div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">{stat.label}</div>
+                    <div className="text-2xl md:text-3xl font-black leading-none text-brand">{stat.value}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{stat.label}</div>
                   </div>
                 </div>
               ))}
@@ -191,8 +195,8 @@ export default function AdminPage() {
 
             {/* Kitchen summary */}
             <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-sm p-6 md:p-10 text-left">
-               <h3 className="text-xl font-black mb-8 uppercase tracking-tight flex items-center gap-3">
-                 <ListChecks className="w-6 h-6 text-brand/20" /> Resumen para Cocina
+               <h3 className="text-xl font-black mb-8 uppercase tracking-tight text-brand flex items-center gap-3">
+                 <ListChecks className="w-6 h-6 text-brand/30" /> Resumen para Cocina
                </h3>
                <div className="grid sm:grid-cols-2 gap-3 text-left">
                   {Object.entries(counts).map(([name, count]) => (
@@ -208,7 +212,7 @@ export default function AdminPage() {
 
           {/* Families */}
           <div className="space-y-6 text-left">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Grupos</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos</h3>
             {families.map((family: any) => (
               <div key={family.id} className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-slate-50 shadow-sm relative group/card">
                 <button 
@@ -230,7 +234,7 @@ export default function AdminPage() {
                       <div key={p.id} className="flex justify-between items-center p-4 bg-brand-ultra-light/40 rounded-2xl group transition-all hover:bg-brand hover:text-white relative">
                         <div className="truncate pr-2">
                           <span className="font-black uppercase text-xs block truncate leading-none mb-1">{p.name}</span>
-                          <span className="text-[9px] font-bold opacity-30 group-hover:opacity-40">{p.phone}</span>
+                          <span className="text-[9px] font-bold text-slate-500 group-hover:text-white/60">Pulsa para elegir menú</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <Link 

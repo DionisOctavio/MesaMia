@@ -95,7 +95,7 @@ export default function DashboardPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 {!isPast && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />}
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">
                   {isPast ? 'Pasada' : 'En curso'} · {dinner.mode}
                 </span>
               </div>
@@ -113,15 +113,15 @@ export default function DashboardPage() {
 
           {/* Date and stats */}
           <div className="flex flex-wrap gap-3 mb-5">
-            <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+            <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
               <CalendarDays className="w-3.5 h-3.5" />
               {dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+            <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
               <Users className="w-3.5 h-3.5" />
               {people} {people === 1 ? 'comensal' : 'comensales'}
             </div>
-            <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
+            <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
               <UtensilsCrossed className="w-3.5 h-3.5" />
               {orders}/{people} pedidos
             </div>
@@ -249,7 +249,7 @@ export default function DashboardPage() {
                     <h2 className="text-xs font-black uppercase tracking-[0.2em] text-brand">En curso o próximas</h2>
                   </div>
                   <div className="flex-1 h-px bg-slate-200" />
-                  <span className="text-xs font-black text-slate-400">{upcoming.length}</span>
+                  <span className="text-xs font-black text-slate-500">{upcoming.length}</span>
                 </div>
                 <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                   {upcoming.map(d => <DinnerCard key={d.id} dinner={d} />)}
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                     <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Cenas pasadas</h2>
                   </div>
                   <div className="flex-1 h-px bg-slate-200" />
-                  <span className="text-xs font-black text-slate-400">{past.length}</span>
+                  <span className="text-xs font-black text-slate-500">{past.length}</span>
                 </div>
                 <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                   {past.map(d => <DinnerCard key={d.id} dinner={d} isPast />)}

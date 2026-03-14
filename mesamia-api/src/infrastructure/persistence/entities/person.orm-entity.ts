@@ -13,7 +13,7 @@ export class PersonOrmEntity {
   @Column()
   name: string;
 
-  @ManyToOne(() => FamilyOrmEntity, (family) => family.people)
+  @ManyToOne(() => FamilyOrmEntity, (family) => family.people, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'familyId' })
   family: FamilyOrmEntity;
 

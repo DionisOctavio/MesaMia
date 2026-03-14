@@ -75,10 +75,10 @@ export default function OrderSelection() {
     if (!dinner) return { starters: [], mains: [], desserts: [], drinks: [], cartaCategories: [] };
     if (dinner.mode === 'MENU') {
       return {
-        starters: dinner.starters.split(',').map((s: string) => s.trim()),
-        mains: dinner.mains.split(',').map((s: string) => s.trim()),
-        desserts: dinner.desserts.split(',').map((s: string) => s.trim()),
-        drinks: dinner.drinks.split(',').map((s: string) => s.trim()),
+        starters: (dinner.starters || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+        mains: (dinner.mains || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+        desserts: (dinner.desserts || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+        drinks: (dinner.drinks || '').split(',').map((s: string) => s.trim()).filter(Boolean),
         cartaCategories: []
       };
     } else {
@@ -142,7 +142,7 @@ export default function OrderSelection() {
               { label: 'Bebida', key: 'drink', items: options.drinks },
             ].map(section => (
               <div key={section.key} className="space-y-6">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 border-b border-brand/5 pb-2 ml-2">{section.label}</h3>
+                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 border-b border-brand/10 pb-2 ml-2">{section.label}</h3>
                 <div className="grid gap-3">
                   {section.items.map((item: string) => (
                     <button key={item} onClick={() => setOrder({...order, [section.key]: item})} className={`p-6 rounded-[2rem] text-left transition-all border-2 flex justify-between items-center ${order[section.key as keyof typeof order] === item ? 'bg-brand text-white border-brand shadow-xl scale-[1.02]' : 'bg-white text-slate-600 border-slate-50 hover:border-brand/20'}`}>
