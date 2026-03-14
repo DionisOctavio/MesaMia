@@ -13,6 +13,9 @@ export class FamilyOrmEntity {
   @Column()
   name: string;
 
+  @Column()
+  phone: string;
+
   @ManyToOne(() => DinnerOrmEntity, (dinner) => dinner.families, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'dinnerId' })
   dinner: DinnerOrmEntity;

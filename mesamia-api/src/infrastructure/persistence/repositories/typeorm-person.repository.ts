@@ -17,14 +17,9 @@ export class TypeOrmPersonRepository implements IPersonRepository {
     await this.repository.save(ormEntity);
   }
 
-  async findByPhone(phone: string): Promise<Person | null> {
-    const e = await this.repository.findOne({ where: { phone } });
-    if (!e) return null;
-    return new Person(e.id, e.familyId, e.name, e.phone);
-  }
 
   async findByFamilyId(familyId: string): Promise<Person[]> {
     const entities = await this.repository.find({ where: { familyId } });
-    return entities.map(e => new Person(e.id, e.familyId, e.name, e.phone));
+    return entities.map(e => new Person(e.id, e.familyId, e.name));
   }
 }

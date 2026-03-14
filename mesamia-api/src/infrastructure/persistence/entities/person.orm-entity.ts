@@ -13,9 +13,6 @@ export class PersonOrmEntity {
   @Column()
   name: string;
 
-  @Column({ unique: true })
-  phone: string;
-
   @ManyToOne(() => FamilyOrmEntity, (family) => family.people)
   @JoinColumn({ name: 'familyId' })
   family: FamilyOrmEntity;

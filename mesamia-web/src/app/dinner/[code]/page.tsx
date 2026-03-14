@@ -18,7 +18,8 @@ export default function JoinDinner() {
 
   const [formData, setFormData] = useState({
     familyName: '',
-    people: [{ name: '', phone: '' }]
+    phone: '',
+    people: [{ name: '' }]
   });
 
   const [registeredFamily, setRegisteredFamily] = useState<any>(null);
@@ -54,7 +55,7 @@ export default function JoinDinner() {
   }, [code]);
 
   const addPerson = () => {
-    setFormData({ ...formData, people: [...formData.people, { name: '', phone: '' }] });
+    setFormData({ ...formData, people: [...formData.people, { name: '' }] });
   };
 
   const updatePerson = (index: number, field: string, value: string) => {
@@ -68,6 +69,7 @@ export default function JoinDinner() {
       const res = await api.post('/dinners/join', {
         dinnerId: dinner.id,
         familyName: formData.familyName,
+        phone: formData.phone,
         people: formData.people
       });
       setRegisteredFamily(res);
@@ -85,12 +87,10 @@ export default function JoinDinner() {
   };
 
   const confirmPhone = async () => {
-    const person = registeredFamily.people.find((p: any) => p.id === verifyingPhone);
-    if (!person) return toast.error('Persona no encontrada.');
-    if (person.phone === phoneInput) {
+    if (registeredFamily.phone === phoneInput) {
       router.push(`/dinner/${code}/order/${verifyingPhone}`);
     } else {
-      toast.error('El número de teléfono no coincide.');
+      toast.error('El número de teléfono del grupo no coincide.');
     }
   };
 
@@ -292,10 +292,17 @@ export default function JoinDinner() {
           {/* STEP 2: Add people */}
           {step === 2 && (
             <div className="space-y-8 animate-in fade-in duration-500">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Paso 2 de 2</span>
-                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight font-sans">Datos de registro</h2>
-                <p className="text-slate-500 text-sm md:text-base mt-2 font-medium">Nombre y teléfono de cada invitado.</p>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Teléfono de contacto del grupo</label>
+                  <input
+                    type="tel"
+                    placeholder="Ej: 612 345 678"
+                    className="w-full px-6 py-5 bg-brand-ultra-light border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand/5 focus:border-brand transition-all outline-none text-xl font-bold font-mono"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -308,17 +315,10 @@ export default function JoinDinner() {
                     <div className="grid gap-3">
                       <input
                         type="text"
-                        placeholder="Nombre Completo"
+                        placeholder="Nombre del comensal"
                         className="w-full px-5 py-4 bg-white border border-slate-100 rounded-xl focus:border-brand outline-none text-base md:text-lg font-bold"
                         value={person.name}
                         onChange={e => updatePerson(i, 'name', e.target.value)}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="Nº de Teléfono"
-                        className="w-full px-5 py-4 bg-white border border-slate-100 rounded-xl focus:border-brand outline-none text-base md:text-lg font-mono font-bold"
-                        value={person.phone}
-                        onChange={e => updatePerson(i, 'phone', e.target.value)}
                       />
                     </div>
                   </div>
@@ -351,7 +351,7 @@ export default function JoinDinner() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <h2 className="text-2xl font-black uppercase tracking-tight">Verifica tu identidad</h2>
-                    <p className="text-slate-500 text-sm mt-2">Por seguridad, introduce tu número de teléfono para editar tu selección.</p>
+                    <p className="text-slate-500 text-sm mt-2">Introduce el teléfono de contacto del grupo (<strong>{registeredFamily.phone.slice(-3).padStart(9, '*')}</strong>) para editar tu menú.</p>
                   </div>
                   <input
                     type="tel"

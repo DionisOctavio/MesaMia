@@ -22,19 +22,21 @@ export class TypeOrmFamilyRepository implements IFamilyRepository {
       where: { dinnerId },
       relations: ['people', 'people.order']
     });
-    return entities.map(e => new Family(e.id, e.dinnerId, e.name));
+    return entities.map(e => new Family(e.id, e.dinnerId, e.name, e.phone));
   }
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }
 
-  async findByPersonPhone(phone: string): Promise<Family | null> {
-    const e = await this.repository.findOne({
-      where: { people: { phone } },
-      relations: ['people', 'people.order']
-    });
+  async findByPhone(phone: string): Promise<Family | null> {
+    const e = await this.repository.findOne({ where: { phone } });
     if (!e) return null;
-    return new Family(e.id, e.dinnerId, e.name);
+    return new Family(e.id, e.dinnerId, e.name, e.phone);
+  }
+
+  async findByPersonPhone(phone: string): Promise<Family | null> {
+    // This now probably means find by group phone as people don't have phones anymore
+    return this.findByPhone(phone);
   }
 }

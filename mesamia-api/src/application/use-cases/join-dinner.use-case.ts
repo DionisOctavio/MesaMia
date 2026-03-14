@@ -9,7 +9,8 @@ import type { IOrderRepository } from '../../domain/repositories/order.repositor
 export interface JoinDinnerCommand {
   dinnerId: string;
   familyName: string;
-  people: { name: string; phone: string }[];
+  phone: string;
+  people: { name: string }[];
 }
 
 @Injectable()
@@ -21,15 +22,17 @@ export class JoinDinnerUseCase {
   ) {}
 
   async execute(command: JoinDinnerCommand): Promise<any> {
-    const family = Family.create(command.dinnerId, command.familyName);
+    const existingFamily = await this.familyRepo.findByPhone(command.phone);
+    if (existingFamily && existingFamily.dinnerId === command.dinnerId) {
+      throw new Error(`Este número de teléfono ya está registrado en esta cena`);
+    }
+
+    const family = Family.create(command.dinnerId, command.familyName, command.phone);
     await this.familyRepo.save(family);
 
     const createdPeople: Person[] = [];
     for (const p of command.people) {
-      const existing = await this.personRepo.findByPhone(p.phone);
-      if (existing) throw new Error(`El número ${p.phone} ya está registrado`);
-
-      const person = Person.create(family.id, p.name, p.phone);
+      const person = Person.create(family.id, p.name);
       await this.personRepo.save(person);
 
       const order = Order.create(person.id);
