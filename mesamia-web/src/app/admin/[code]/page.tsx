@@ -8,6 +8,7 @@ import { Users, Utensils, CreditCard, Share2, Download, ListChecks, ArrowLeft, T
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { showConfirm } from '@/components/Modal';
+import { copyToClipboard } from '@/infrastructure/util/clipboard';
 
 export default function AdminPage() {
   const { code } = useParams();
@@ -29,24 +30,14 @@ export default function AdminPage() {
 
   const handleShare = async () => {
     const url = `${window.location.origin}/dinner/${code}`;
-    setSharing(true);
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Mesa Mía', text: `Únete a "${dinner.name}"`, url });
-        toast.success('Compartido!');
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Enlace copiado al portapapeles');
-      }
-    } catch {
-      // user cancelled or error → try clipboard as fallback
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success('Enlace copiado al portapapeles');
-      } catch {
-        toast.error('No se pudo copiar el enlace');
-      }
-    } finally { setTimeout(() => setSharing(false), 2000); }
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      setSharing(true);
+      toast.success('Enlace de invitado copiado');
+      setTimeout(() => setSharing(false), 2000);
+    } else {
+      toast.error('No se pudo copiar el enlace');
+    }
   };
 
   const handleShareAdmin = async () => {
@@ -56,17 +47,13 @@ export default function AdminPage() {
       return;
     }
     const url = `${window.location.origin}/dinner/${adminCode}`;
-    setAdminCodeModal(true);
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        setAdminCopied(true);
-        toast.success('Enlace de colaborador copiado');
-        setTimeout(() => setAdminCopied(false), 3000);
-      }
-    } catch {
-      toast.error('No se pudo copiar automáticamente');
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      setAdminCopied(true);
+      toast.success('Enlace de colaborador copiado');
+      setTimeout(() => setAdminCopied(false), 3000);
     }
+    setAdminCodeModal(true);
   };
 
   const handleDeleteFamily = async (id: string, name: string) => {
@@ -146,10 +133,10 @@ export default function AdminPage() {
               <button onClick={handleShare} className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-md text-xs uppercase tracking-widest ${sharing ? 'bg-emerald-500 text-white' : 'bg-white text-brand border border-slate-100'}`}>
                 <Share2 className="w-4 h-4" /> {sharing ? 'Copiado' : 'Invitar'}
               </button>
-              <button onClick={handleShareAdmin} className="px-4 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all">
+               <button onClick={handleShareAdmin} className="px-4 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all print:hidden">
                 <ShieldCheck className="w-4 h-4" /> <span className="hidden sm:inline">Colaborador</span>
               </button>
-              <button className="px-4 sm:px-6 py-3 sm:py-4 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-xl shadow-brand/20">
+              <button onClick={() => window.print()} className="px-4 sm:px-6 py-3 sm:py-4 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-xl shadow-brand/20 print:hidden">
                 <Download className="w-4 h-4" /> <span className="hidden sm:inline">Exportar</span> PDF
               </button>
             </div>
@@ -285,10 +272,17 @@ export default function AdminPage() {
               <button onClick={() => setAdminCodeModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">
                 Cerrar
               </button>
-              <button
+               <button
                 onClick={async () => {
                   const url = `${window.location.origin}/dinner/${dinner.adminCode}`;
-                  try { await navigator.clipboard.writeText(url); setAdminCopied(true); setTimeout(() => setAdminCopied(false), 3000); } catch {}
+                  const ok = await copyToClipboard(url);
+                  if (ok) {
+                    setAdminCopied(true);
+                    toast.success('Enlace copiado');
+                    setTimeout(() => setAdminCopied(false), 3000);
+                  } else {
+                    toast.error('No se pudo copiar');
+                  }
                 }}
                 className={`flex-[2] py-4 font-black rounded-2xl uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all ${adminCopied ? 'bg-emerald-500 text-white' : 'bg-brand text-white'}`}
               >
@@ -298,6 +292,19 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        @media print {
+          .print\\:hidden { display: none !important; }
+          body { background: white !important; padding: 0 !important; }
+          .max-w-6xl { max-width: 100% !important; }
+          button, nav, a[href="/dashboard"] { display: none !important; }
+          .shadow-sm, .shadow-md, .shadow-xl { shadow: none !important; border: 1px solid #eee !important; }
+          .bg-brand-ultra-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; }
+          .bg-brand { background-color: #0f172a !important; -webkit-print-color-adjust: exact; }
+          .text-brand { color: #0f172a !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -351,7 +351,7 @@ export default function JoinDinner() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <h2 className="text-2xl font-black uppercase tracking-tight">Verifica tu identidad</h2>
-                    <p className="text-slate-500 text-sm mt-2">Introduce el teléfono de contacto del grupo (<strong>{registeredFamily.phone.slice(-3).padStart(9, '*')}</strong>) para editar tu menú.</p>
+                    <p className="text-slate-500 text-sm mt-2">Introduce el teléfono de contacto del grupo (<strong>{(registeredFamily.phone || '').slice(-3).padStart(9, '*')}</strong>) para editar tu menú.</p>
                   </div>
                   <input
                     type="tel"
@@ -377,27 +377,78 @@ export default function JoinDinner() {
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
                     <h2 className="text-3xl font-black uppercase tracking-tight mb-2">¡Bienvenidos!</h2>
-                    <p className="text-slate-500 text-lg">Grupo: <strong>{registeredFamily.name}</strong></p>
+                    <p className="text-slate-500 text-lg mb-1">Grupo: <strong>{registeredFamily.name}</strong></p>
+                    {dinner.mode === 'MENU' ? (
+                      <div className="flex flex-col items-center gap-1 mt-4 p-4 bg-brand-ultra-light rounded-2xl border border-brand/5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total del Grupo</span>
+                        <span className="text-2xl font-black text-brand">{(parseFloat(dinner.menuPrice || '0') * (registeredFamily.people || []).length).toFixed(2)}€</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{dinner.menuPrice}€ por persona</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 mt-4 p-4 bg-brand-ultra-light rounded-2xl border border-brand/5">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Acumulado Grupo</span>
+                        <span className="text-2xl font-black text-brand">
+                          {(() => {
+                            let total = 0;
+                            const products = JSON.parse(dinner.cartaProducts || '[]');
+                            const allProducts = products.flatMap((p: any) => p.products);
+                            (registeredFamily.people || []).forEach((p: any) => {
+                              try {
+                                const items = JSON.parse(p.order?.cartaItems || '[]');
+                                items.forEach((item: any) => {
+                                  const prod = allProducts.find((ap: any) => ap.name === item.name);
+                                  if (prod) total += (parseFloat(prod.price) * item.quantity);
+                                });
+                              } catch(e){}
+                            });
+                            return total.toFixed(2);
+                          })()}€
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Suma de todos los pedidos</span>
+                      </div>
+                    )}
                   </div>
 
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 text-center">Pulsa tu nombre para elegir o editar tu menú:</p>
                     <div className="space-y-3">
-                      {(registeredFamily.people || []).map((p: any) => (
-                        <button
-                          key={p.id}
-                          onClick={() => handlePersonClick(p)}
-                          className="w-full p-6 md:p-8 bg-brand-ultra-light hover:bg-brand hover:text-white rounded-[2rem] flex justify-between items-center transition-all group border border-slate-50"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white text-brand flex items-center justify-center group-hover:bg-brand-light group-hover:text-white transition-colors">
-                              <Utensils className="w-5 h-5" />
+                      {(registeredFamily.people || []).map((p: any) => {
+                        let personTotal = '0.00';
+                        if (dinner.mode === 'MENU') {
+                          personTotal = parseFloat(dinner.menuPrice || '0').toFixed(2);
+                        } else {
+                          try {
+                            const products = JSON.parse(dinner.cartaProducts || '[]');
+                            const allProducts = products.flatMap((p: any) => p.products);
+                            const items = JSON.parse(p.order?.cartaItems || '[]');
+                            let t = 0;
+                            items.forEach((item: any) => {
+                              const prod = allProducts.find((ap: any) => ap.name === item.name);
+                              if (prod) t += (parseFloat(prod.price) * item.quantity);
+                            });
+                            personTotal = t.toFixed(2);
+                          } catch(e){}
+                        }
+
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => handlePersonClick(p)}
+                            className="w-full p-6 md:p-8 bg-brand-ultra-light hover:bg-brand hover:text-white rounded-[2rem] flex justify-between items-center transition-all group border border-slate-50"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-white text-brand flex items-center justify-center group-hover:bg-brand-light group-hover:text-white transition-colors">
+                                <Utensils className="w-5 h-5" />
+                              </div>
+                              <div className="text-left">
+                                <span className="text-xl md:text-2xl font-black uppercase tracking-tight block leading-none">{p.name}</span>
+                                <span className="text-[10px] font-bold opacity-60 group-hover:opacity-100 uppercase tracking-widest">Subtotal: {personTotal}€</span>
+                              </div>
                             </div>
-                            <span className="text-xl md:text-2xl font-black uppercase tracking-tight">{p.name}</span>
-                          </div>
-                          <ArrowRight className="w-6 h-6 opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
-                        </button>
-                      ))}
+                            <ArrowRight className="w-6 h-6 opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 

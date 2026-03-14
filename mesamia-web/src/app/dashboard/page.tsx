@@ -12,6 +12,7 @@ import {
   Plus, LogOut, Users, ArrowRight, Trash2,
   CalendarDays, UtensilsCrossed, Clock, CheckCircle2, Share2
 } from 'lucide-react';
+import { copyToClipboard } from '@/infrastructure/util/clipboard';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -54,15 +55,16 @@ export default function DashboardPage() {
 
   const handleShare = async (dinner: any) => {
     const url = `${window.location.origin}/dinner/${dinner.code}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Mesa Mía', text: `Únete a "${dinner.name}"`, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Enlace copiado');
-      }
-    } catch {
-      try { await navigator.clipboard.writeText(url); toast.success('Enlace copiado'); } catch {}
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      toast.success('Enlace copiado al portapapeles');
+    } else {
+      toast.error('No se pudo copiar el enlace');
+    }
+    
+    // Also try native share if available as an extra
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Mesa Mía', text: `Únete a "${dinner.name}"`, url }); } catch {}
     }
   };
 
