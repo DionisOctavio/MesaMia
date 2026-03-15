@@ -87,7 +87,9 @@ export default function JoinDinner() {
   };
 
   const confirmPhone = async () => {
-    if (registeredFamily.phone === phoneInput) {
+    const cleanRegistered = (registeredFamily.phone || '').replace(/\s+/g, '');
+    const cleanInput = phoneInput.replace(/\s+/g, '');
+    if (cleanRegistered === cleanInput) {
       router.push(`/dinner/${code}/order/${verifyingPhone}`);
     } else {
       toast.error('El número de teléfono del grupo no coincide.');
@@ -208,14 +210,13 @@ export default function JoinDinner() {
   return (
     <div className="min-h-screen bg-slate-50 py-6 md:py-12 px-4 md:px-6 font-sans text-brand text-left">
       <div className="max-w-xl mx-auto">
-        <header className="text-center mb-10 md:mb-14">
-          <Image src="/logo-color.png" alt="Mesa Mía" width={180} height={50} style={{ height: 'auto' }} className="mx-auto mb-8" priority />
-          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-3 leading-tight">{dinner.name}</h1>
-          <div className="bg-brand text-white inline-block px-6 py-3 rounded-2xl shadow-lg">
-            <p className="font-black text-xs md:text-sm tracking-[0.2em] uppercase">{dinner.restaurant} • {new Date(dinner.date).toLocaleDateString()}</p>
+        <header className="text-center mb-6 md:mb-10">
+          <Image src="/logo-color.png" alt="Mesa Mía" width={140} height={40} style={{ height: 'auto' }} className="mx-auto mb-6" priority />
+          <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mb-3 leading-tight">{dinner.name}</h1>
+          <div className="bg-brand text-white inline-block px-5 py-2 rounded-2xl shadow-lg">
+            <p className="font-black text-[10px] md:text-xs tracking-[0.2em] uppercase">{dinner.restaurant} • {new Date(dinner.date).toLocaleDateString()}</p>
           </div>
         </header>
-
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-brand/5 p-8 md:p-14 border border-slate-100">
 
           {/* PASO 1: UNIRSE O CREAR GRUPO */}
@@ -224,18 +225,18 @@ export default function JoinDinner() {
               {showGroups ? (
                 <>
                   <div>
-                    <h2 className="text-3xl font-black uppercase tracking-tight">Grupos ya unidos</h2>
-                    <p className="text-slate-600 text-lg font-bold mt-2">Busca el tuyo en la lista:</p>
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Grupos ya unidos</h2>
+                    <p className="text-slate-600 text-base md:text-lg font-bold mt-2">Busca el tuyo en la lista:</p>
                   </div>
                   <div className="grid gap-4">
                     {(dinner.families || []).map((f: any) => (
                       <button
                         key={f.id}
                         onClick={() => { setRegisteredFamily(f); setStep(3); }}
-                        className="w-full p-8 bg-slate-50 hover:bg-brand hover:text-white rounded-3xl flex justify-between items-center transition-all border-2 border-slate-100 shadow-sm"
+                        className="w-full p-6 md:p-8 bg-slate-50 hover:bg-brand hover:text-white rounded-3xl flex justify-between items-center transition-all border-2 border-slate-100 shadow-sm"
                       >
-                        <span className="text-2xl font-black uppercase tracking-tight">{f.name}</span>
-                        <ArrowRight className="w-6 h-6" />
+                        <span className="text-xl md:text-2xl font-black uppercase tracking-tight">{f.name}</span>
+                        <ArrowRight className="w-5 h-5" />
                       </button>
                     ))}
                     {(!dinner.families || dinner.families.length === 0) && (
@@ -362,23 +363,26 @@ export default function JoinDinner() {
               {verifyingPhone ? (
                 <div className="space-y-8 py-4">
                   <div className="text-center space-y-4">
-                    <h2 className="text-4xl font-black uppercase tracking-tight">Seguridad</h2>
-                    <p className="text-slate-600 font-bold text-xl">Introduce el teléfono del grupo <strong>{registeredFamily.name}</strong> para entrar.</p>
+                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Seguridad</h2>
+                    <p className="text-slate-600 font-bold text-base md:text-lg">Introduce el teléfono del grupo <strong>{registeredFamily.name}</strong> para entrar.</p>
                     <div className="bg-slate-100 py-3 px-6 rounded-2xl inline-block border-2 border-slate-200 shadow-inner">
-                       <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Pista: Termina en ...{(registeredFamily.phone || '').slice(-3)}</p>
+                       <p className="text-slate-500 text-[10px] md:text-xs font-black uppercase tracking-widest">
+                         {registeredFamily.phone 
+                           ? `Pista: Termina en ...${registeredFamily.phone.replace(/\s+/g, '').slice(-3)}`
+                           : 'Escribe el teléfono que usaste al registrarte'}
+                       </p>
                     </div>
                   </div>
-                  
+                 
                   <input
                     type="tel"
                     placeholder="Tu móvil..."
                     autoFocus
-                    className="w-full px-8 py-8 bg-slate-50 border-4 border-slate-100 rounded-[2.5rem] outline-none focus:border-brand font-mono font-black text-center text-4xl shadow-2xl"
+                    className="w-full px-8 py-6 md:py-8 bg-slate-50 border-4 border-slate-100 rounded-[2.5rem] outline-none focus:border-brand font-mono font-black text-center text-3xl md:text-4xl shadow-2xl"
                     value={phoneInput}
                     onChange={e => setPhoneInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && confirmPhone()}
                   />
-
                   <div className="flex gap-4">
                     <button onClick={() => setVerifyingPhone(null)} className="flex-1 py-6 bg-slate-100 text-slate-500 font-black rounded-3xl uppercase text-xs tracking-widest shadow-sm">
                       Atrás

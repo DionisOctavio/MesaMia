@@ -44,6 +44,7 @@ export class JoinDinnerUseCase {
     return {
       id: family.id,
       name: family.name,
+      phone: family.phone,
       people: createdPeople.map(p => ({ id: p.id, name: p.name }))
     };
   }

@@ -27,7 +27,7 @@ export default function JoinByCode() {
         <div className="bg-white text-brand rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 shadow-2xl">
           <Image src="/logo-color.png" alt="Mesa Mía" width={160} height={45} style={{ height: 'auto' }} className="mb-8" />
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight mb-2 leading-none">Únete a una cena</h1>
-          <p className="text-slate-600 mb-8 font-bold text-lg">Introduce el código de 4 letras que te han dado.</p>
+          <p className="text-slate-600 mb-8 font-bold text-lg">Introduce el código de la cena que te han dado.</p>
 
           <form onSubmit={handleJoin} className="space-y-6">
             <input 
@@ -35,12 +35,11 @@ export default function JoinByCode() {
               type="text" 
               placeholder="CÓDIGO"
               autoFocus
-              maxLength={10}
-              className="w-full px-8 py-8 bg-brand-ultra-light border-2 border-slate-100 rounded-3xl focus:bg-white focus:ring-8 focus:ring-brand/10 focus:border-brand transition-all outline-none text-5xl font-black text-center uppercase tracking-[0.3em] placeholder:text-slate-300 mb-2"
+              className="w-full px-8 py-6 md:py-8 bg-brand-ultra-light border-2 border-slate-100 rounded-3xl focus:bg-white focus:ring-8 focus:ring-brand/10 focus:border-brand transition-all outline-none text-4xl md:text-5xl font-black text-center uppercase tracking-[0.3em] placeholder:text-slate-300 mb-2"
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
             />
-            <p className="text-center text-xs font-black uppercase tracking-widest text-slate-400 mb-6 italic">Ejemplo: ABCD</p>
+            <p className="text-center text-xs font-black uppercase tracking-widest text-slate-400 mb-6 italic">Ejemplo: ABCD o 1234AB</p>
             
             <button 
               type="submit"
