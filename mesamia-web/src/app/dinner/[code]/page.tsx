@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/infrastructure/util/api';
 import { auth } from '@/infrastructure/util/auth';
 import Image from 'next/image';
-import { ArrowRight, CheckCircle2, Utensils, ShieldCheck, Key, Phone } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Utensils, ShieldCheck, Key, Phone, Search, ArrowUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { showConfirm, showPrompt } from '@/components/Modal';
 
@@ -87,12 +87,28 @@ export default function JoinDinner() {
   };
 
   const handleSubmit = async () => {
+    // Validations
+    if (!formData.familyName.trim()) {
+      toast.error('El nombre del grupo no puede estar vacío');
+      return;
+    }
+    const cleanPhone = formData.phone.replace(/\+/g, '').replace(/\s+/g, '');
+    if (cleanPhone.length < 9) {
+      toast.error('Por favor, introduce un teléfono válido (mín. 9 dígitos)');
+      return;
+    }
+    const validPeople = formData.people.filter((p: any) => p.name.trim() !== '');
+    if (validPeople.length === 0) {
+      toast.error('Debes añadir al menos una persona con nombre');
+      return;
+    }
+
     try {
       const res = await api.post('/dinners/join', {
         dinnerId: dinner.id,
-        familyName: formData.familyName,
-        phone: formData.phone,
-        people: formData.people
+        familyName: formData.familyName.trim(),
+        phone: formData.phone.trim(),
+        people: validPeople
       });
       setRegisteredFamily(res);
       localStorage.setItem(`dinner_${code}_family`, JSON.stringify(res));
@@ -254,19 +270,24 @@ export default function JoinDinner() {
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {showGroups ? (
                 <>
-                  <div>
-                    <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Grupos ya unidos</h2>
-                    <p className="text-slate-600 text-base md:text-lg font-bold mt-2">Busca el tuyo en la lista:</p>
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Grupos ya registrados</h2>
+                      <p className="text-slate-600 text-[10px] md:text-sm font-bold mt-1">Si ya te uniste, entra aquí:</p>
+                    </div>
+                    {dinner.families?.length > 10 && (
+                      <span className="text-[10px] font-black bg-brand/5 px-3 py-1 rounded-full text-brand/40">{dinner.families.length} GRUPOS</span>
+                    )}
                   </div>
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {(dinner.families || []).map((f: any) => (
                       <button
                         key={f.id}
                         onClick={() => { setRegisteredFamily(f); setStep(3); }}
-                        className="w-full p-6 md:p-8 bg-slate-50 hover:bg-brand hover:text-white rounded-3xl flex justify-between items-center transition-all border-2 border-slate-100 shadow-sm"
+                        className="w-full p-4 md:p-6 bg-slate-50 hover:bg-brand hover:text-white rounded-2xl flex justify-between items-center transition-all border border-slate-100 group"
                       >
-                        <span className="text-xl md:text-2xl font-black uppercase tracking-tight">{f.name}</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <span className="text-sm md:text-lg font-black uppercase tracking-tight">{f.name}</span>
+                        <ArrowRight className="w-4 h-4 opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                       </button>
                     ))}
                     {(!dinner.families || dinner.families.length === 0) && (
@@ -466,7 +487,12 @@ export default function JoinDinner() {
                   </div>
 
                   <div className="space-y-6">
-                    <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600 text-center">Pulsa en un nombre para pedir:</p>
+                    <div className="flex justify-between items-center mb-6">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">Comensales:</p>
+                      <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-[10px] font-black uppercase tracking-widest text-brand/40 flex items-center gap-1 hover:text-brand transition-colors">
+                        Subir ↑
+                      </button>
+                    </div>
                     <div className="grid gap-5">
                       {(registeredFamily.people || []).map((p: any) => {
                         let personTotal = '0.00';
@@ -499,8 +525,8 @@ export default function JoinDinner() {
                             key={p.id}
                             onClick={() => handlePersonClick(p)}
                             className={`w-full p-8 md:p-10 hover:bg-brand hover:text-white rounded-[2.5rem] flex justify-between items-center transition-all group border-2 shadow-sm ${hasOrder
-                                ? 'bg-emerald-50 border-emerald-200'
-                                : 'bg-slate-50 border-slate-100'
+                              ? 'bg-emerald-50 border-emerald-200'
+                              : 'bg-slate-50 border-slate-100'
                               }`}
                           >
                             <div className="flex items-center gap-6">
@@ -508,10 +534,31 @@ export default function JoinDinner() {
                                 <Utensils className="w-7 h-7" />
                               </div>
                               <div className="text-left">
-                                <span className="text-2xl md:text-4xl font-black uppercase tracking-tight block leading-none mb-1">{p.name}</span>
-                                <span className="text-xs font-black text-slate-400 group-hover:text-white/60 uppercase tracking-widest">
-                                  {refreshingPrices ? '...' : (hasOrder ? `${personTotal}€` : 'Sin pedido aún')}
-                                </span>
+                                <span className="text-2xl md:text-3xl font-black uppercase tracking-tight block leading-none mb-2">{p.name}</span>
+                                <div className="flex flex-col gap-2">
+                                  <span className={`text-[10px] font-black uppercase tracking-widest ${hasOrder ? 'text-emerald-500' : 'text-slate-400 group-hover:text-white/60'}`}>
+                                    {refreshingPrices ? '...' : (hasOrder ? `${personTotal}€ • Ver/Editar` : 'Sin pedido aún')}
+                                  </span>
+                                  {hasOrder && !refreshingPrices && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {dinner.mode === 'MENU' ? (
+                                        [p.order.starter, p.order.main, p.order.dessert, p.order.drink].filter(Boolean).map((name, idx) => (
+                                          <span key={idx} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-bold rounded-md uppercase truncate max-w-[100px]">{name}</span>
+                                        ))
+                                      ) : (
+                                        (() => {
+                                          try {
+                                            const items = JSON.parse(p.order.cartaItems || '[]');
+                                            return items.slice(0, 3).map((it: any, idx: number) => {
+                                              const name = typeof it === 'string' ? it : it.name;
+                                              return <span key={idx} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-bold rounded-md uppercase truncate max-w-[100px]">{name}</span>;
+                                            }).concat(items.length > 3 ? [<span key="more" className="text-[8px] font-bold text-emerald-500">+{items.length - 3}</span>] : []);
+                                          } catch { return null; }
+                                        })()
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <ArrowRight className="w-8 h-8 opacity-20 group-hover:opacity-100 group-hover:translate-x-3 transition-all" />
