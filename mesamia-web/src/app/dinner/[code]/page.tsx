@@ -349,7 +349,7 @@ export default function JoinDinner() {
                 >
                   <CheckCircle2 className="w-10 h-10" /> ¡Entrar a la cena!
                 </button>
-                <button onClick={() => setStep(1)} className="text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-brand transition-colors text-center">
+                <button onClick={() => setStep(1)} className="text-slate-400 font-black uppercase tracking-widest text-xs hover:text-brand transition-colors text-center">
                   ← Volver al paso anterior
                 </button>
               </div>
@@ -469,7 +469,7 @@ export default function JoinDinner() {
                   <div className="pt-12 border-t border-slate-100 flex flex-col items-center">
                     <button
                       onClick={handleChangeGroup}
-                      className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] hover:text-red-500 transition-colors py-4 px-10 border-2 border-slate-100 rounded-full"
+                      className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs hover:text-red-500 transition-colors py-4 px-10 border-2 border-slate-100 rounded-full"
                     >
                       ← Salir de este grupo
                     </button>

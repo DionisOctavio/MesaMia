@@ -164,17 +164,17 @@ export default function AdminPage() {
 
         <div className="mb-8 flex flex-wrap items-center gap-4">
            <div className="flex items-center gap-2">
-             <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
+             <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
              <div className="flex -space-x-2">
                {(dinner.organizers || []).map((org: any, i: number) => (
-                 <div key={i} className="w-8 h-8 rounded-full bg-brand border-2 border-white flex items-center justify-center text-[10px] text-white font-black" title={org.phone}>
+                 <div key={i} className="w-8 h-8 rounded-full bg-brand border-2 border-white flex items-center justify-center text-xs text-white font-black" title={org.phone}>
                    {org.phone.substring(0, 1)}
                  </div>
                ))}
              </div>
            </div>
            {dinner.adminCode && (
-             <button onClick={handleShareAdmin} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-brand-light border border-dashed border-slate-200 rounded-xl px-3 py-2 hover:border-brand hover:text-brand transition-all" title="Copiar código de colaborador">
+             <button onClick={handleShareAdmin} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-light border border-dashed border-slate-200 rounded-xl px-3 py-2 hover:border-brand hover:text-brand transition-all" title="Copiar código de colaborador">
                <ShieldCheck className="w-3 h-3" /> Código colaborador: <span className="font-mono text-brand">{dinner.adminCode}</span>
              </button>
            )}
@@ -195,7 +195,7 @@ export default function AdminPage() {
                     <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0"><stat.icon className="w-5 h-5" /></div>
                     <div className="text-left">
                       <div className="text-2xl font-black leading-none text-brand">{stat.value}</div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{stat.label}</div>
+                      <div className="text-xs font-black uppercase tracking-widest text-slate-500 mt-1">{stat.label}</div>
                     </div>
                   </div>
                 ))}
@@ -215,7 +215,7 @@ export default function AdminPage() {
                         <span className="w-8 h-8 rounded-full bg-white text-brand border border-slate-50 flex items-center justify-center flex-shrink-0 text-xs font-black shadow-inner">{count}</span>
                       </div>
                     ))}
-                    {Object.keys(counts).length === 0 && <div className="col-span-full py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">Esperando primer pedido...</div>}
+                    {Object.keys(counts).length === 0 && <div className="col-span-full py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">Esperando primer pedido...</div>}
                  </div>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function AdminPage() {
           {/* Bottom Section: Families (Full Width Grid) */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos ({families.length})</h3>
+              <h3 className="text-xs font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos ({families.length})</h3>
               <div className="relative w-full sm:w-auto min-w-[300px]">
                 <input 
                   type="text" 

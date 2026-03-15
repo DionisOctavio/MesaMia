@@ -44,7 +44,7 @@ export default function RecoverPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-5 text-left">
           <div className="space-y-4">
             <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Tu Teléfono</label>
+                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Tu Teléfono</label>
                <div className="relative">
                   <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <input 
@@ -59,7 +59,7 @@ export default function RecoverPasswordPage() {
             </div>
             
             <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Código de CENA (Seguridad)</label>
+                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Código de CENA (Seguridad)</label>
                <div className="relative">
                   <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <input 
@@ -71,11 +71,11 @@ export default function RecoverPasswordPage() {
                     onChange={e => setFormData({...formData, dinnerCode: e.target.value.toUpperCase()})} 
                   />
                </div>
-               <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Debes introducir el código de cualquier cena que hayas creado.</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">Debes introducir el código de cualquier cena que hayas creado.</p>
             </div>
 
             <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Nueva Contraseña</label>
+                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Nueva Contraseña</label>
                <div className="relative">
                   <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   <input 
@@ -90,15 +90,15 @@ export default function RecoverPasswordPage() {
             </div>
           </div>
 
-          <button disabled={loading} type="submit" className="w-full py-5 bg-brand text-white font-black rounded-full hover:bg-brand-light transition-all shadow-xl uppercase tracking-widest text-[10px] disabled:opacity-50 mt-4">
+           <button disabled={loading} type="submit" className="w-full py-5 bg-brand text-white font-black rounded-full hover:bg-brand-light transition-all shadow-xl uppercase tracking-widest text-xs disabled:opacity-50 mt-4">
             {loading ? 'Validando...' : 'Cambiar Contraseña'}
           </button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
-            <Link href="/login" className="inline-flex items-center gap-2 text-brand-light hover:text-brand text-[10px] font-black uppercase tracking-widest transition-colors">
-              <ArrowLeft className="w-3 h-3" /> Volver al Login
-            </Link>
+             <Link href="/login" className="inline-flex items-center gap-2 text-brand-light hover:text-brand text-xs font-black uppercase tracking-widest transition-colors">
+               <ArrowLeft className="w-3 h-3" /> Volver al Login
+             </Link>
         </div>
       </div>
     </main>
