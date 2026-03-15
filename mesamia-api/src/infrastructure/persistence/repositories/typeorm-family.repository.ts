@@ -10,7 +10,7 @@ export class TypeOrmFamilyRepository implements IFamilyRepository {
   constructor(
     @InjectRepository(FamilyOrmEntity)
     private readonly repository: Repository<FamilyOrmEntity>,
-  ) {}
+  ) { }
 
   async save(family: Family): Promise<void> {
     const ormEntity = this.repository.create(family);
@@ -18,7 +18,7 @@ export class TypeOrmFamilyRepository implements IFamilyRepository {
   }
 
   async findByDinnerId(dinnerId: string): Promise<Family[]> {
-    const entities = await this.repository.find({ 
+    const entities = await this.repository.find({
       where: { dinnerId },
       relations: ['people', 'people.order']
     });
@@ -44,5 +44,13 @@ export class TypeOrmFamilyRepository implements IFamilyRepository {
     const e = await this.repository.findOne({ where: { id } });
     if (!e) return null;
     return new Family(e.id, e.dinnerId, e.name, e.phone);
+  }
+
+  async findByIdWithPeople(id: string): Promise<any | null> {
+    const e = await this.repository.findOne({
+      where: { id },
+      relations: ['people', 'people.order'],
+    });
+    return e ?? null;
   }
 }

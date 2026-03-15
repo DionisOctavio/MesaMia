@@ -96,16 +96,42 @@ export default function AdminPage() {
       Cargando Panel...
     </div>
   );
-  
+
   if (!dinner) return <div className="min-h-screen flex items-center justify-center font-bold">Cena no encontrada.</div>;
 
   const families = dinner.families || [];
   const people = families.flatMap((f: any) => f.people || []);
   const orders = people.map((p: any) => p.order).filter(Boolean);
-  
-  const numericPrice = parseFloat(dinner.menuPrice.replace(',', '.')) || 0;
-  const totalMoney = people.length * numericPrice;
-  
+
+  const numericPrice = parseFloat((dinner.menuPrice || '0').toString().replace(',', '.')) || 0;
+
+  // Calculate total for MENU mode
+  const totalMenuMoney = people.length * numericPrice;
+
+  // Calculate total for CARTA mode by summing all confirmed order items
+  const totalCartaMoney = (() => {
+    if (dinner.mode !== 'CARTA') return 0;
+    let total = 0;
+    try {
+      const cartaProducts = JSON.parse(dinner.cartaProducts || '[]');
+      const allProducts = cartaProducts.flatMap((cat: any) => cat.products || []);
+      orders.forEach((o: any) => {
+        try {
+          const items = JSON.parse(o.cartaItems || '[]');
+          items.forEach((item: any) => {
+            const itemName = typeof item === 'string' ? item : item.name;
+            const itemQty = typeof item === 'string' ? 1 : (item.quantity || 1);
+            const prod = allProducts.find((ap: any) => ap.name === itemName);
+            if (prod) total += parseFloat((prod.price || '0').toString().replace(',', '.')) * itemQty;
+          });
+        } catch { }
+      });
+    } catch { }
+    return total;
+  })();
+
+  const totalMoney = dinner.mode === 'MENU' ? totalMenuMoney : totalCartaMoney;
+
   const counts: Record<string, number> = {};
   if (dinner.mode === 'MENU') {
     orders.forEach((o: any) => {
@@ -152,7 +178,7 @@ export default function AdminPage() {
               <button onClick={handleShare} className={`px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-md text-xs uppercase tracking-widest ${sharing ? 'bg-emerald-500 text-white' : 'bg-white text-brand border border-slate-100'}`}>
                 <Share2 className="w-4 h-4" /> {sharing ? 'Copiado' : 'Invitar'}
               </button>
-               <button onClick={handleShareAdmin} className="px-4 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all print:hidden">
+              <button onClick={handleShareAdmin} className="px-4 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all print:hidden">
                 <ShieldCheck className="w-4 h-4" /> <span className="hidden sm:inline">Colaborador</span>
               </button>
               <button onClick={() => window.print()} className="px-4 sm:px-6 py-3 sm:py-4 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-xl shadow-brand/20 print:hidden">
@@ -163,33 +189,33 @@ export default function AdminPage() {
         </header>
 
         <div className="mb-8 flex flex-wrap items-center gap-4">
-           <div className="flex items-center gap-2">
-             <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
-             <div className="flex -space-x-2">
-               {(dinner.organizers || []).map((org: any, i: number) => (
-                 <div key={i} className="w-8 h-8 rounded-full bg-brand border-2 border-white flex items-center justify-center text-xs text-white font-black" title={org.phone}>
-                   {org.phone.substring(0, 1)}
-                 </div>
-               ))}
-             </div>
-           </div>
-           {dinner.adminCode && (
-             <button onClick={handleShareAdmin} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-light border border-dashed border-slate-200 rounded-xl px-3 py-2 hover:border-brand hover:text-brand transition-all" title="Copiar código de colaborador">
-               <ShieldCheck className="w-3 h-3" /> Código colaborador: <span className="font-mono text-brand">{dinner.adminCode}</span>
-             </button>
-           )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
+            <div className="flex -space-x-2">
+              {(dinner.organizers || []).map((org: any, i: number) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-brand border-2 border-white flex items-center justify-center text-xs text-white font-black" title={org.phone}>
+                  {org.phone.substring(0, 1)}
+                </div>
+              ))}
+            </div>
+          </div>
+          {dinner.adminCode && (
+            <button onClick={handleShareAdmin} className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-brand-light border border-dashed border-slate-200 rounded-xl px-3 py-2 hover:border-brand hover:text-brand transition-all" title="Copiar código de colaborador">
+              <ShieldCheck className="w-3 h-3" /> Código colaborador: <span className="font-mono text-brand">{dinner.adminCode}</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:gap-8">
           {/* Top Section: Quick Stats and Kitchen Summary */}
           <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-1 space-y-6">
-               {/* Quick Stats */}
-               <div className="grid grid-cols-1 gap-4">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 gap-4">
                 {[
                   { icon: Users, label: 'Personas', value: people.length },
                   { icon: Utensils, label: 'Selecciones', value: orders.length },
-                  { icon: CreditCard, label: 'Recaudado (est)', value: dinner.mode === 'MENU' ? `${totalMoney.toFixed(2)}€` : 'Variable' },
+                  { icon: CreditCard, label: 'Recaudado (est)', value: `${totalMoney.toFixed(2)}€` },
                 ].map((stat, i) => (
                   <div key={i} className="p-6 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex items-center gap-4 transition-all hover:scale-[1.02]">
                     <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0"><stat.icon className="w-5 h-5" /></div>
@@ -205,18 +231,18 @@ export default function AdminPage() {
             <div className="lg:col-span-2">
               {/* Kitchen summary */}
               <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-sm p-6 md:p-8 h-full text-left">
-                 <h3 className="text-lg font-black mb-6 uppercase tracking-tight text-brand flex items-center gap-3">
-                   <ListChecks className="w-6 h-6 text-brand/30" /> Resumen para Cocina
-                 </h3>
-                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left">
-                    {Object.entries(counts).map(([name, count]) => (
-                      <div key={name} className="flex justify-between items-center p-4 bg-brand-ultra-light rounded-3xl group hover:bg-brand hover:text-white transition-all shadow-sm">
-                        <span className="font-black uppercase tracking-tight text-xs truncate pr-2 leading-none">{name}</span>
-                        <span className="w-8 h-8 rounded-full bg-white text-brand border border-slate-50 flex items-center justify-center flex-shrink-0 text-xs font-black shadow-inner">{count}</span>
-                      </div>
-                    ))}
-                    {Object.keys(counts).length === 0 && <div className="col-span-full py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">Esperando primer pedido...</div>}
-                 </div>
+                <h3 className="text-lg font-black mb-6 uppercase tracking-tight text-brand flex items-center gap-3">
+                  <ListChecks className="w-6 h-6 text-brand/30" /> Resumen para Cocina
+                </h3>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left">
+                  {Object.entries(counts).map(([name, count]) => (
+                    <div key={name} className="flex justify-between items-center p-4 bg-brand-ultra-light rounded-3xl group hover:bg-brand hover:text-white transition-all shadow-sm">
+                      <span className="font-black uppercase tracking-tight text-xs truncate pr-2 leading-none">{name}</span>
+                      <span className="w-8 h-8 rounded-full bg-white text-brand border border-slate-50 flex items-center justify-center flex-shrink-0 text-xs font-black shadow-inner">{count}</span>
+                    </div>
+                  ))}
+                  {Object.keys(counts).length === 0 && <div className="col-span-full py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">Esperando primer pedido...</div>}
+                </div>
               </div>
             </div>
           </div>
@@ -226,9 +252,9 @@ export default function AdminPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
               <h3 className="text-xs font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos ({families.length})</h3>
               <div className="relative w-full sm:w-auto min-w-[300px]">
-                <input 
-                  type="text" 
-                  placeholder="Buscar grupo o persona..." 
+                <input
+                  type="text"
+                  placeholder="Buscar grupo o persona..."
                   className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand shadow-sm"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
@@ -239,53 +265,53 @@ export default function AdminPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {families
-                .filter((f: any) => 
-                  f.name.toLowerCase().includes(search.toLowerCase()) || 
+                .filter((f: any) =>
+                  f.name.toLowerCase().includes(search.toLowerCase()) ||
                   (f.people || []).some((p: any) => p.name.toLowerCase().includes(search.toLowerCase()))
                 )
                 .map((family: any) => (
-                <div key={family.id} className="bg-white rounded-[2.5rem] p-6 border border-slate-50 shadow-sm relative group/card flex flex-col">
-                  <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <button onClick={() => handleEditPhone(family)} className="p-2 text-slate-300 hover:text-brand transition-colors" title="Editar teléfono">
-                      <Phone className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 text-red-100 hover:text-red-500 transition-colors" title="Expulsar grupo">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <h4 className="text-base font-black uppercase tracking-tight leading-none mb-1 truncate pr-12">{family.name}</h4>
-                    <p className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter">
-                      {family.phone || 'Sin teléfono'}
-                    </p>
-                  </div>
+                  <div key={family.id} className="bg-white rounded-[2.5rem] p-6 border border-slate-50 shadow-sm relative group/card flex flex-col">
+                    <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                      <button onClick={() => handleEditPhone(family)} className="p-2 text-slate-300 hover:text-brand transition-colors" title="Editar teléfono">
+                        <Phone className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 text-red-100 hover:text-red-500 transition-colors" title="Expulsar grupo">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
 
-                  <div className="space-y-2 flex-1">
-                    {family.people?.map((p: any) => {
-                      const hasOrder = dinner.mode === 'MENU' ? p.order?.starter : (p.order?.cartaItems && p.order.cartaItems !== '[]');
-                      return (
-                        <div key={p.id} className="flex justify-between items-center p-3 bg-brand-ultra-light/40 rounded-xl group transition-all hover:bg-brand hover:text-white">
-                          <span className="font-black uppercase text-[10px] block truncate leading-none">{p.name}</span>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/dinner/${code}/order/${p.id}`} className="p-1 opacity-0 group-hover:opacity-100 hover:scale-110 transition-all text-white"><ExternalLink className="w-3 h-3" /></Link>
-                            <div className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm ${hasOrder ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                              {hasOrder ? 'OK' : '...'}
+                    <div className="mb-4">
+                      <h4 className="text-base font-black uppercase tracking-tight leading-none mb-1 truncate pr-12">{family.name}</h4>
+                      <p className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter">
+                        {family.phone || 'Sin teléfono'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 flex-1">
+                      {family.people?.map((p: any) => {
+                        const hasOrder = dinner.mode === 'MENU' ? p.order?.starter : (p.order?.cartaItems && p.order.cartaItems !== '[]');
+                        return (
+                          <div key={p.id} className="flex justify-between items-center p-3 bg-brand-ultra-light/40 rounded-xl group transition-all hover:bg-brand hover:text-white">
+                            <span className="font-black uppercase text-[10px] block truncate leading-none">{p.name}</span>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/dinner/${code}/order/${p.id}`} className="p-1 opacity-0 group-hover:opacity-100 hover:scale-110 transition-all text-white"><ExternalLink className="w-3 h-3" /></Link>
+                              <div className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm ${hasOrder ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                {hasOrder ? 'OK' : '...'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
 
-                  <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
-                     <span className="text-[10px] font-black uppercase text-brand/40 tracking-widest">{family.people?.length || 0} PERSONAS</span>
-                     <Link href={`/dinner/${code}`} className="text-[10px] font-black uppercase text-brand flex items-center gap-1 hover:underline">
+                    <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase text-brand/40 tracking-widest">{family.people?.length || 0} PERSONAS</span>
+                      <Link href={`/dinner/${code}`} className="text-[10px] font-black uppercase text-brand flex items-center gap-1 hover:underline">
                         Invitado <ArrowLeft className="w-3 h-3 rotate-180" />
-                     </Link>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
               {families.length === 0 && (
                 <div className="col-span-full py-20 bg-white/50 border border-dashed border-slate-200 rounded-[3rem] text-center">
                   <p className="text-slate-300 font-black uppercase tracking-[0.3em] text-[10px]">Aún no hay ningún comensal inscrito</p>
@@ -293,34 +319,34 @@ export default function AdminPage() {
               )}
             </div>
           </div>
-      </div>
+        </div>
 
-      {/* ── Edit Phone Modal ─────────────────────────── */}
-      {editingFamily && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditingFamily(null)} />
-          <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-black uppercase tracking-tight text-brand mb-1">Editar Teléfono</h3>
-            <p className="text-slate-500 text-sm mb-6">Modifica el teléfono de «{editingFamily.name}»</p>
-            
-            <input 
-              type="tel" 
-              className="w-full px-6 py-4 bg-brand-ultra-light rounded-2xl outline-none border-transparent focus:bg-white focus:ring-4 focus:ring-brand/5 focus:border-brand font-bold mb-6"
-              value={newPhone}
-              onChange={e => setNewPhone(e.target.value)}
-            />
+        {/* ── Edit Phone Modal ─────────────────────────── */}
+        {editingFamily && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditingFamily(null)} />
+            <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200">
+              <h3 className="text-xl font-black uppercase tracking-tight text-brand mb-1">Editar Teléfono</h3>
+              <p className="text-slate-500 text-sm mb-6">Modifica el teléfono de «{editingFamily.name}»</p>
 
-            <div className="flex gap-3">
-              <button onClick={() => setEditingFamily(null)} className="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">
-                Cancelar
-              </button>
-              <button onClick={saveNewPhone} className="flex-[2] py-4 bg-brand text-white font-black rounded-2xl uppercase text-[10px] tracking-widest">
-                Guardar
-              </button>
+              <input
+                type="tel"
+                className="w-full px-6 py-4 bg-brand-ultra-light rounded-2xl outline-none border-transparent focus:bg-white focus:ring-4 focus:ring-brand/5 focus:border-brand font-bold mb-6"
+                value={newPhone}
+                onChange={e => setNewPhone(e.target.value)}
+              />
+
+              <div className="flex gap-3">
+                <button onClick={() => setEditingFamily(null)} className="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">
+                  Cancelar
+                </button>
+                <button onClick={saveNewPhone} className="flex-[2] py-4 bg-brand text-white font-black rounded-2xl uppercase text-[10px] tracking-widest">
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       </div>
 
@@ -351,7 +377,7 @@ export default function AdminPage() {
               <button onClick={() => setAdminCodeModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">
                 Cerrar
               </button>
-               <button
+              <button
                 onClick={async () => {
                   const url = `${window.location.origin}/dinner/${dinner.adminCode}`;
                   const ok = await copyToClipboard(url);

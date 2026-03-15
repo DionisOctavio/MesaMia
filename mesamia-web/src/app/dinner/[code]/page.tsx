@@ -26,11 +26,28 @@ export default function JoinDinner() {
   const [showGroups, setShowGroups] = useState(false);
   const [verifyingPhone, setVerifyingPhone] = useState<string | null>(null);
   const [phoneInput, setPhoneInput] = useState('');
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
   // Admin code flow
   const [adminDinner, setAdminDinner] = useState<any>(null);
   const [adminForm, setAdminForm] = useState({ phone: '', password: '' });
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminIsRegister, setAdminIsRegister] = useState(false);
+
+  // Refreshes family data from the API to get up-to-date prices/orders
+  const refreshFamily = async (familyId: string) => {
+    setRefreshingPrices(true);
+    try {
+      const res = await api.get(`/families/${familyId}`);
+      if (res && res.id) {
+        setRegisteredFamily(res);
+        localStorage.setItem(`dinner_${code}_family`, JSON.stringify(res));
+      }
+    } catch (e) {
+      // silently fail, keep local data
+    } finally {
+      setRefreshingPrices(false);
+    }
+  };
 
   useEffect(() => {
     // Try normal code first, then admin code
@@ -40,7 +57,7 @@ export default function JoinDinner() {
         // Try as admin code
         api.get(`/dinners/admin/${code}`)
           .then(data => { setAdminDinner(data); })
-          .catch(() => {}); // Not found at all
+          .catch(() => { }); // Not found at all
       })
       .finally(() => setLoading(false));
 
@@ -48,9 +65,14 @@ export default function JoinDinner() {
     const saved = localStorage.getItem(`dinner_${code}_family`);
     if (saved) {
       try {
-        setRegisteredFamily(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setRegisteredFamily(parsed);
         setStep(3);
-      } catch (e) {}
+        // Always refresh from API to get latest order prices
+        if (parsed?.id) {
+          refreshFamily(parsed.id);
+        }
+      } catch (e) { }
     }
   }, [code]);
 
@@ -81,9 +103,17 @@ export default function JoinDinner() {
     }
   };
 
-  const handlePersonClick = (person: any) => {
+  const handlePersonClickAndRefresh = async (person: any) => {
+    // Refresh prices when user comes back and clicks a person
+    if (registeredFamily?.id) {
+      await refreshFamily(registeredFamily.id);
+    }
     setVerifyingPhone(person.id);
     setPhoneInput('');
+  };
+
+  const handlePersonClick = (person: any) => {
+    handlePersonClickAndRefresh(person);
   };
 
   const confirmPhone = async () => {
@@ -366,14 +396,14 @@ export default function JoinDinner() {
                     <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Seguridad</h2>
                     <p className="text-slate-600 font-bold text-base md:text-lg">Introduce el teléfono del grupo <strong>{registeredFamily.name}</strong> para entrar.</p>
                     <div className="bg-slate-100 py-3 px-6 rounded-2xl inline-block border-2 border-slate-200 shadow-inner">
-                       <p className="text-slate-500 text-[10px] md:text-xs font-black uppercase tracking-widest">
-                         {registeredFamily.phone 
-                           ? `Pista: Termina en ...${registeredFamily.phone.replace(/\s+/g, '').slice(-3)}`
-                           : 'Escribe el teléfono que usaste al registrarte'}
-                       </p>
+                      <p className="text-slate-500 text-[10px] md:text-xs font-black uppercase tracking-widest">
+                        {registeredFamily.phone
+                          ? `Pista: Termina en ...${registeredFamily.phone.replace(/\s+/g, '').slice(-3)}`
+                          : 'Escribe el teléfono que usaste al registrarte'}
+                      </p>
                     </div>
                   </div>
-                 
+
                   <input
                     type="tel"
                     placeholder="Tu móvil..."
@@ -400,30 +430,38 @@ export default function JoinDinner() {
                     </div>
                     <h2 className="text-5xl font-black uppercase tracking-tight mb-3">¡Oído Cocina!</h2>
                     <p className="text-slate-500 text-xl">Bienvenidos, grupo <strong>{registeredFamily.name}</strong></p>
-                    
+
                     <div className="mt-8 p-8 bg-slate-50 rounded-[3rem] border-2 border-slate-100 shadow-inner relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
                       <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block mb-2 relative">Total de vuestra mesa</span>
-                      <span className="text-5xl font-black text-brand relative">
-                        {dinner.mode === 'MENU' 
-                          ? (parseFloat(dinner.menuPrice || '0') * (registeredFamily.people || []).length).toFixed(2)
-                          : (() => {
+                      {refreshingPrices ? (
+                        <span className="text-2xl font-black text-slate-300 relative animate-pulse">Calculando...</span>
+                      ) : (
+                        <span className="text-5xl font-black text-brand relative">
+                          {dinner.mode === 'MENU'
+                            ? (parseFloat((dinner.menuPrice || '0').toString().replace(',', '.')) * (registeredFamily.people || []).length).toFixed(2)
+                            : (() => {
                               let total = 0;
                               try {
                                 const products = JSON.parse(dinner.cartaProducts || '[]');
                                 const allProducts = products.flatMap((p: any) => p.products);
                                 (registeredFamily.people || []).forEach((p: any) => {
-                                  const items = JSON.parse(p.order?.cartaItems || '[]');
+                                  const rawItems = p.order?.cartaItems;
+                                  if (!rawItems || rawItems === '[]') return;
+                                  const items = JSON.parse(rawItems);
                                   items.forEach((item: any) => {
-                                    const prod = allProducts.find((ap: any) => ap.name === item.name);
-                                    if (prod) total += (parseFloat(prod.price) * item.quantity);
+                                    const itemName = typeof item === 'string' ? item : item.name;
+                                    const itemQty = typeof item === 'string' ? 1 : (item.quantity || 1);
+                                    const prod = allProducts.find((ap: any) => ap.name === itemName);
+                                    if (prod) total += (parseFloat((prod.price || '0').toString().replace(',', '.')) * itemQty);
                                   });
                                 });
-                              } catch(e){}
+                              } catch (e) { }
                               return total.toFixed(2);
                             })()
-                        }€
-                      </span>
+                          }€
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -432,27 +470,38 @@ export default function JoinDinner() {
                     <div className="grid gap-5">
                       {(registeredFamily.people || []).map((p: any) => {
                         let personTotal = '0.00';
+                        let hasOrder = false;
                         if (dinner.mode === 'MENU') {
-                          personTotal = parseFloat(dinner.menuPrice || '0').toFixed(2);
+                          personTotal = parseFloat((dinner.menuPrice || '0').toString().replace(',', '.')).toFixed(2);
+                          hasOrder = !!(p.order?.starter || p.order?.main);
                         } else {
                           try {
                             const products = JSON.parse(dinner.cartaProducts || '[]');
-                            const allProducts = products.flatMap((p: any) => p.products);
-                            const items = JSON.parse(p.order?.cartaItems || '[]');
-                            let t = 0;
-                            items.forEach((item: any) => {
-                              const prod = allProducts.find((ap: any) => ap.name === item.name);
-                              if (prod) t += (parseFloat(prod.price) * item.quantity);
-                            });
-                            personTotal = t.toFixed(2);
-                          } catch(e){}
+                            const allProducts = products.flatMap((cat: any) => cat.products);
+                            const rawItems = p.order?.cartaItems;
+                            if (rawItems && rawItems !== '[]') {
+                              const items = JSON.parse(rawItems);
+                              let t = 0;
+                              items.forEach((item: any) => {
+                                const itemName = typeof item === 'string' ? item : item.name;
+                                const itemQty = typeof item === 'string' ? 1 : (item.quantity || 1);
+                                const prod = allProducts.find((ap: any) => ap.name === itemName);
+                                if (prod) t += (parseFloat((prod.price || '0').toString().replace(',', '.')) * itemQty);
+                              });
+                              personTotal = t.toFixed(2);
+                              hasOrder = items.length > 0;
+                            }
+                          } catch (e) { }
                         }
 
                         return (
                           <button
                             key={p.id}
                             onClick={() => handlePersonClick(p)}
-                            className="w-full p-8 md:p-10 bg-slate-50 hover:bg-brand hover:text-white rounded-[2.5rem] flex justify-between items-center transition-all group border-2 border-slate-100 shadow-sm"
+                            className={`w-full p-8 md:p-10 hover:bg-brand hover:text-white rounded-[2.5rem] flex justify-between items-center transition-all group border-2 shadow-sm ${hasOrder
+                                ? 'bg-emerald-50 border-emerald-200'
+                                : 'bg-slate-50 border-slate-100'
+                              }`}
                           >
                             <div className="flex items-center gap-6">
                               <div className="w-14 h-14 rounded-2xl bg-white text-brand flex items-center justify-center group-hover:bg-brand-light group-hover:text-white transition-all shadow-md group-hover:rotate-6">
@@ -460,7 +509,9 @@ export default function JoinDinner() {
                               </div>
                               <div className="text-left">
                                 <span className="text-2xl md:text-4xl font-black uppercase tracking-tight block leading-none mb-1">{p.name}</span>
-                                <span className="text-xs font-black text-slate-400 group-hover:text-white/60 uppercase tracking-widest">Su pedido: {personTotal}€</span>
+                                <span className="text-xs font-black text-slate-400 group-hover:text-white/60 uppercase tracking-widest">
+                                  {refreshingPrices ? '...' : (hasOrder ? `${personTotal}€` : 'Sin pedido aún')}
+                                </span>
                               </div>
                             </div>
                             <ArrowRight className="w-8 h-8 opacity-20 group-hover:opacity-100 group-hover:translate-x-3 transition-all" />
