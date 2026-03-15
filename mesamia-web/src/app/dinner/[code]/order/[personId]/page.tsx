@@ -124,12 +124,41 @@ export default function OrderSelection() {
     });
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 140; // Space for the sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-brand-ultra-light py-8 px-4 font-sans text-brand text-left">
-      <div className="max-w-2xl mx-auto mb-6 sm:mb-8">
+      <div className="max-w-2xl mx-auto mb-6 sm:mb-8 flex flex-col items-center">
         <Image src="/logo-color.png" alt="Mesa Mía" width={140} height={38} style={{ height: 'auto' }} className="mb-4 sm:mb-6" />
-        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mb-2 leading-none">{dinner.name}</h1>
-        <p className="text-slate-500 font-bold uppercase tracking-widest text-[9px] mb-6 sm:mb-8">{dinner.restaurant}</p>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mb-2 leading-none text-center">{dinner.name}</h1>
+        <p className="text-slate-500 font-bold uppercase tracking-widest text-[9px] mb-4 sm:mb-6 text-center">{dinner.restaurant}</p>
+        
+        {dinner.mode === 'CARTA' && options.cartaCategories.length > 0 && (
+          <div className="sticky top-4 z-20 w-full mb-2">
+            <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl border border-slate-100 shadow-lg flex gap-2 overflow-x-auto no-scrollbar py-3 px-4">
+              {options.cartaCategories.map((cat: any, idx: number) => (
+                <button 
+                  key={idx}
+                  onClick={() => scrollToSection(`category-${idx}`)}
+                  className="whitespace-nowrap px-4 py-2 bg-brand-ultra-light hover:bg-brand text-brand hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="max-w-2xl mx-auto space-y-8 sm:space-y-12 pb-32">
@@ -157,8 +186,10 @@ export default function OrderSelection() {
         ) : (
           <div className="space-y-12">
             {options.cartaCategories.map((cat: any, idx: number) => (
-              <div key={idx} className="space-y-6">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand border-b border-brand/10 pb-2 ml-2">{cat.name}</h3>
+              <div key={idx} id={`category-${idx}`} className="space-y-6 scroll-mt-32">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand border-b-2 border-brand/10 pb-2 ml-2 flex items-center gap-3">
+                  <span className="w-2 h-2 rounded-full bg-brand" /> {cat.name}
+                </h3>
                 <div className="grid gap-3">
                   {cat.products.map((item: any, pIdx: number) => {
                     const quantity = order.cartaItems.find(i => i.name === item.name)?.quantity || 0;
