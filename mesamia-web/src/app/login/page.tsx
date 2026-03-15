@@ -39,12 +39,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-ultra-light flex items-center justify-center p-6 text-brand font-sans">
+    <main className="min-h-screen bg-brand-ultra-light flex items-center justify-center p-6 text-brand font-sans">
       <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-brand/10 p-8 md:p-12 border border-slate-50 text-center">
         <Image src="/logo-color.png" alt="Mesa Mía" width={200} height={55} style={{ height: 'auto' }} className="mx-auto mb-8" priority />
         
         <h1 className="text-3xl font-black uppercase tracking-tight mb-2">
-          {isRegister ? 'Crea tu cuenta' : 'Área Organizador'}
+          {isRegister ? 'Crear cuenta en Mesa Mía' : 'Acceso para Organizadores'}
         </h1>
         <p className="text-slate-500 text-sm mb-10 font-medium">
           {isRegister ? 'Regístrate para gestionar tus cenas.' : 'Inicia sesión para crear una nueva cena.'}
@@ -89,6 +89,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

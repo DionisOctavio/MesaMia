@@ -161,10 +161,10 @@ export default function CreateDinner() {
           </button>
         </div>
         
-        <div className="bg-white rounded-[2.5rem] shadow-xl shadow-brand/5 p-6 md:p-12 border border-slate-100">
+        <main className="bg-white rounded-[2.5rem] shadow-xl shadow-brand/5 p-6 md:p-12 border border-slate-100">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-12">
             <div>
-              <h1 className="text-3xl font-black mb-2 text-brand uppercase tracking-tight">Nueva Cena</h1>
+              <h1 className="text-3xl font-black mb-2 text-brand uppercase tracking-tight">Organiza tu cena con Mesa Mía</h1>
               <p className="text-slate-500 font-medium">Define el festín y organiza el grupo.</p>
             </div>
             <Image src="/logo-color.png" alt="Mesa Mía" width={130} height={36} style={{ height: 'auto' }} />
@@ -283,7 +283,7 @@ export default function CreateDinner() {
               </button>
             </div>
           </form>
-        </div>
+        </main>
       </div>
     </div>
   );

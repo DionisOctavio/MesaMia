@@ -19,9 +19,9 @@ export default function Home() {
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-brand text-white px-4">
         <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1555244162-803834f70033?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
         <div className="relative z-10 max-w-4xl w-full px-4 sm:px-6 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <div className="mb-6 sm:mb-8 flex justify-center">
-            <Image src="/logo-white.png" alt="Mesa Mía" width={280} height={70} className="drop-shadow-lg w-44 sm:w-56 md:w-72 h-auto" priority />
-          </div>
+          <h1 className="mb-6 sm:mb-8 flex justify-center">
+            <Image src="/logo-white.png" alt="Mesa Mía - La mejor plataforma para organizar cenas grupales" width={280} height={70} className="drop-shadow-lg w-44 sm:w-56 md:w-72 h-auto" priority />
+          </h1>
           <p className="text-base sm:text-xl md:text-2xl text-slate-200 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
             La forma más inteligente de organizar cenas grupales. Sin caos, sin listas interminables, solo buenos momentos.
           </p>

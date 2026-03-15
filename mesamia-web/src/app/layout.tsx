@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mesa Mía",
-  description: "Organiza tus cenas de forma inteligente",
+  title: "Mesa Mía | Organiza tus cenas grupales sin complicaciones",
+  description: "La plataforma definitiva para gestionar menús, pedidos y grupos en tus cenas. Sin caos, sin líos de tickets, solo disfruta de la comida.",
+  keywords: ["cenas", "grupos", "organizador", "menú", "restaurante", "Mesa Mía", "gastronomía"],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

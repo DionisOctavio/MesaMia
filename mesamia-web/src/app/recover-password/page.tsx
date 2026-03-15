@@ -32,11 +32,11 @@ export default function RecoverPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-ultra-light flex items-center justify-center p-6 text-brand font-sans">
+    <main className="min-h-screen bg-brand-ultra-light flex items-center justify-center p-6 text-brand font-sans">
       <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-brand/10 p-8 md:p-12 border border-slate-50 text-center">
         <Image src="/logo-color.png" alt="Mesa Mía" width={180} height={50} style={{ height: 'auto' }} className="mx-auto mb-8" priority />
         
-        <h1 className="text-2xl font-black uppercase tracking-tight mb-2 leading-none">Recuperar Acceso</h1>
+        <h1 className="text-2xl font-black uppercase tracking-tight mb-2 leading-none">Recuperar acceso a Mesa Mía</h1>
         <p className="text-slate-500 text-xs mb-8 font-medium">
           Valida tu identidad introduciendo tu teléfono y el código de una de tus cenas.
         </p>
@@ -101,6 +101,6 @@ export default function RecoverPasswordPage() {
             </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
