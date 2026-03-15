@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { api } from '@/infrastructure/util/api';
-import { Users, Utensils, CreditCard, Share2, Download, ListChecks, ArrowLeft, Trash2, ExternalLink, ShieldCheck, Copy, Check } from 'lucide-react';
+import { Users, Utensils, CreditCard, Share2, Download, ListChecks, ArrowLeft, Trash2, ExternalLink, ShieldCheck, Copy, Check, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { showConfirm } from '@/components/Modal';
@@ -17,6 +17,9 @@ export default function AdminPage() {
   const [sharing, setSharing] = useState(false);
   const [adminCodeModal, setAdminCodeModal] = useState(false); // show admin code popup
   const [adminCopied, setAdminCopied] = useState(false);
+  const [search, setSearch] = useState('');
+  const [editingFamily, setEditingFamily] = useState<any>(null); // For phone editing
+  const [newPhone, setNewPhone] = useState('');
 
   const fetchDinner = () => {
     api.get(`/dinners/${code}`).then(setDinner).finally(() => setLoading(false));
@@ -69,6 +72,22 @@ export default function AdminPage() {
       fetchDinner();
     } catch {
       toast.error('Error al eliminar el grupo');
+    }
+  };
+
+  const handleEditPhone = (family: any) => {
+    setEditingFamily(family);
+    setNewPhone(family.phone || '');
+  };
+
+  const saveNewPhone = async () => {
+    try {
+      await api.patch(`/families/${editingFamily.id}`, { phone: newPhone });
+      toast.success('Teléfono actualizado');
+      setEditingFamily(null);
+      fetchDinner();
+    } catch {
+      toast.error('Error al actualizar el teléfono');
     }
   };
 
@@ -161,88 +180,148 @@ export default function AdminPage() {
            )}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-          <div className="lg:col-span-2 space-y-6 md:space-y-8 text-left">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-              {[
-                { icon: Users, label: 'Personas', value: people.length },
-                { icon: Utensils, label: 'Selecciones', value: orders.length },
-                { icon: CreditCard, label: 'Recaudado (est)', value: dinner.mode === 'MENU' ? `${totalMoney.toFixed(2)}€` : 'Variable' },
-              ].map((stat, i) => (
-                <div key={i} className="p-6 md:p-8 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex flex-row sm:flex-col items-center sm:items-start gap-4 transition-all hover:scale-[1.02]">
-                  <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0"><stat.icon className="w-5 h-5" /></div>
-                  <div className="text-left">
-                    <div className="text-2xl md:text-3xl font-black leading-none text-brand">{stat.value}</div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{stat.label}</div>
+        <div className="grid grid-cols-1 gap-6 md:gap-8">
+          {/* Top Section: Quick Stats and Kitchen Summary */}
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="lg:col-span-1 space-y-6">
+               {/* Quick Stats */}
+               <div className="grid grid-cols-1 gap-4">
+                {[
+                  { icon: Users, label: 'Personas', value: people.length },
+                  { icon: Utensils, label: 'Selecciones', value: orders.length },
+                  { icon: CreditCard, label: 'Recaudado (est)', value: dinner.mode === 'MENU' ? `${totalMoney.toFixed(2)}€` : 'Variable' },
+                ].map((stat, i) => (
+                  <div key={i} className="p-6 bg-white rounded-[2rem] border border-slate-50 shadow-sm flex items-center gap-4 transition-all hover:scale-[1.02]">
+                    <div className="w-12 h-12 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0"><stat.icon className="w-5 h-5" /></div>
+                    <div className="text-left">
+                      <div className="text-2xl font-black leading-none text-brand">{stat.value}</div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{stat.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              {/* Kitchen summary */}
+              <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-sm p-6 md:p-8 h-full text-left">
+                 <h3 className="text-lg font-black mb-6 uppercase tracking-tight text-brand flex items-center gap-3">
+                   <ListChecks className="w-6 h-6 text-brand/30" /> Resumen para Cocina
+                 </h3>
+                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-left">
+                    {Object.entries(counts).map(([name, count]) => (
+                      <div key={name} className="flex justify-between items-center p-4 bg-brand-ultra-light rounded-3xl group hover:bg-brand hover:text-white transition-all shadow-sm">
+                        <span className="font-black uppercase tracking-tight text-xs truncate pr-2 leading-none">{name}</span>
+                        <span className="w-8 h-8 rounded-full bg-white text-brand border border-slate-50 flex items-center justify-center flex-shrink-0 text-xs font-black shadow-inner">{count}</span>
+                      </div>
+                    ))}
+                    {Object.keys(counts).length === 0 && <div className="col-span-full py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">Esperando primer pedido...</div>}
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section: Families (Full Width Grid) */}
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos ({families.length})</h3>
+              <div className="relative w-full sm:w-auto min-w-[300px]">
+                <input 
+                  type="text" 
+                  placeholder="Buscar grupo o persona..." 
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand shadow-sm"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+                <ListChecks className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {families
+                .filter((f: any) => 
+                  f.name.toLowerCase().includes(search.toLowerCase()) || 
+                  (f.people || []).some((p: any) => p.name.toLowerCase().includes(search.toLowerCase()))
+                )
+                .map((family: any) => (
+                <div key={family.id} className="bg-white rounded-[2.5rem] p-6 border border-slate-50 shadow-sm relative group/card flex flex-col">
+                  <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                    <button onClick={() => handleEditPhone(family)} className="p-2 text-slate-300 hover:text-brand transition-colors" title="Editar teléfono">
+                      <Phone className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 text-red-100 hover:text-red-500 transition-colors" title="Expulsar grupo">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h4 className="text-base font-black uppercase tracking-tight leading-none mb-1 truncate pr-12">{family.name}</h4>
+                    <p className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter">
+                      {family.phone || 'Sin teléfono'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 flex-1">
+                    {family.people?.map((p: any) => {
+                      const hasOrder = dinner.mode === 'MENU' ? p.order?.starter : (p.order?.cartaItems && p.order.cartaItems !== '[]');
+                      return (
+                        <div key={p.id} className="flex justify-between items-center p-3 bg-brand-ultra-light/40 rounded-xl group transition-all hover:bg-brand hover:text-white">
+                          <span className="font-black uppercase text-[10px] block truncate leading-none">{p.name}</span>
+                          <div className="flex items-center gap-2">
+                            <Link href={`/dinner/${code}/order/${p.id}`} className="p-1 opacity-0 group-hover:opacity-100 hover:scale-110 transition-all text-white"><ExternalLink className="w-3 h-3" /></Link>
+                            <div className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-sm ${hasOrder ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                              {hasOrder ? 'OK' : '...'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                     <span className="text-[10px] font-black uppercase text-brand/40 tracking-widest">{family.people?.length || 0} PERSONAS</span>
+                     <Link href={`/dinner/${code}`} className="text-[10px] font-black uppercase text-brand flex items-center gap-1 hover:underline">
+                        Invitado <ArrowLeft className="w-3 h-3 rotate-180" />
+                     </Link>
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Kitchen summary */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-50 shadow-sm p-6 md:p-10 text-left">
-               <h3 className="text-xl font-black mb-8 uppercase tracking-tight text-brand flex items-center gap-3">
-                 <ListChecks className="w-6 h-6 text-brand/30" /> Resumen para Cocina
-               </h3>
-               <div className="grid sm:grid-cols-2 gap-3 text-left">
-                  {Object.entries(counts).map(([name, count]) => (
-                    <div key={name} className="flex justify-between items-center p-5 bg-brand-ultra-light rounded-3xl group hover:bg-brand hover:text-white transition-all shadow-sm">
-                      <span className="font-black uppercase tracking-tight text-xs md:text-sm truncate pr-2 leading-none">{name}</span>
-                      <span className="w-8 h-8 rounded-full bg-white text-brand border border-slate-50 flex items-center justify-center flex-shrink-0 text-xs font-black shadow-inner">{count}</span>
-                    </div>
-                  ))}
-                  {Object.keys(counts).length === 0 && <div className="col-span-2 py-10 text-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">Esperando primer pedido...</div>}
-               </div>
+              {families.length === 0 && (
+                <div className="col-span-full py-20 bg-white/50 border border-dashed border-slate-200 rounded-[3rem] text-center">
+                  <p className="text-slate-300 font-black uppercase tracking-[0.3em] text-[10px]">Aún no hay ningún comensal inscrito</p>
+                </div>
+              )}
             </div>
           </div>
+      </div>
 
-          {/* Families */}
-          <div className="space-y-6 text-left">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-brand/60 ml-2">Grupos Inscritos</h3>
-            {families.map((family: any) => (
-              <div key={family.id} className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-slate-50 shadow-sm relative group/card">
-                <button 
-                  onClick={() => handleDeleteFamily(family.id, family.name)}
-                  className="absolute top-6 right-6 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover/card:opacity-100 p-2"
-                  title="Expulsar grupo"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                
-                <div className="flex justify-between items-center mb-6 pr-8">
-                  <h4 className="text-lg md:text-xl font-black uppercase tracking-tight leading-none truncate pr-4">{family.name}</h4>
-                  <span className="bg-brand-ultra-light text-brand px-3 py-1 rounded-full text-[9px] font-black uppercase flex-shrink-0">{family.people?.length || 0} P.</span>
-                </div>
-                <div className="space-y-3">
-                  {family.people?.map((p: any) => {
-                    const hasOrder = dinner.mode === 'MENU' ? p.order?.starter : (p.order?.cartaItems && p.order.cartaItems !== '[]');
-                    return (
-                      <div key={p.id} className="flex justify-between items-center p-4 bg-brand-ultra-light/40 rounded-2xl group transition-all hover:bg-brand hover:text-white relative">
-                        <div className="truncate pr-2">
-                          <span className="font-black uppercase text-xs block truncate leading-none mb-1">{p.name}</span>
-                          <span className="text-[9px] font-bold text-slate-500 group-hover:text-white/60">Pulsa para elegir menú</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Link 
-                            href={`/dinner/${code}/order/${p.id}`}
-                            className="p-2 text-slate-300 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                            title="Editar selección"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                          <div className={`text-[9px] font-black px-2 py-1 rounded-lg flex-shrink-0 uppercase tracking-tighter shadow-sm ${hasOrder ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                            {hasOrder ? 'LIQUIdO' : 'PdTE'}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+      {/* ── Edit Phone Modal ─────────────────────────── */}
+      {editingFamily && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditingFamily(null)} />
+          <div className="relative w-full max-w-sm bg-white rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black uppercase tracking-tight text-brand mb-1">Editar Teléfono</h3>
+            <p className="text-slate-500 text-sm mb-6">Modifica el teléfono de «{editingFamily.name}»</p>
+            
+            <input 
+              type="tel" 
+              className="w-full px-6 py-4 bg-brand-ultra-light rounded-2xl outline-none border-transparent focus:bg-white focus:ring-4 focus:ring-brand/5 focus:border-brand font-bold mb-6"
+              value={newPhone}
+              onChange={e => setNewPhone(e.target.value)}
+            />
+
+            <div className="flex gap-3">
+              <button onClick={() => setEditingFamily(null)} className="flex-1 py-4 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">
+                Cancelar
+              </button>
+              <button onClick={saveNewPhone} className="flex-[2] py-4 bg-brand text-white font-black rounded-2xl uppercase text-[10px] tracking-widest">
+                Guardar
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
       </div>
 
       {/* ── Admin Code Modal ─────────────────────────────── */}

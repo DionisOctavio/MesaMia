@@ -6,4 +6,5 @@ export interface IFamilyRepository {
   delete(id: string): Promise<void>;
   findByPhone(phone: string): Promise<Family | null>;
   findByPersonPhone(phone: string): Promise<Family | null>;
+  findById(id: string): Promise<Family | null>;
 }

@@ -39,4 +39,10 @@ export class TypeOrmFamilyRepository implements IFamilyRepository {
     // This now probably means find by group phone as people don't have phones anymore
     return this.findByPhone(phone);
   }
+
+  async findById(id: string): Promise<Family | null> {
+    const e = await this.repository.findOne({ where: { id } });
+    if (!e) return null;
+    return new Family(e.id, e.dinnerId, e.name, e.phone);
+  }
 }

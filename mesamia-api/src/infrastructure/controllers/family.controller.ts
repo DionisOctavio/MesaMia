@@ -1,4 +1,4 @@
-import { Controller, Delete, Param, Get, Query, Inject, UseGuards, Request, NotFoundException } from '@nestjs/common';
+import { Controller, Delete, Param, Get, Query, Inject, UseGuards, Request, NotFoundException, Patch, Body } from '@nestjs/common';
 import type { IFamilyRepository } from '../../domain/repositories/family.repository';
 import { AuthGuard } from '../auth/auth.guard';
 import type { IDinnerRepository } from '../../domain/repositories/dinner.repository';
@@ -14,6 +14,18 @@ export class FamilyController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.familyRepo.delete(id);
+    return { success: true };
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: { phone: string }) {
+    const family = await this.familyRepo.findById(id);
+    if (!family) throw new NotFoundException('Grupo no encontrado');
+    
+    // Update phone
+    const updated = { ...family, phone: body.phone } as any;
+    await this.familyRepo.save(updated);
     return { success: true };
   }
 

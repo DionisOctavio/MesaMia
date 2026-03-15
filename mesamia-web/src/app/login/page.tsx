@@ -65,6 +65,11 @@ export default function LoginPage() {
                   <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                   <input required type="password" placeholder="••••••••" className="w-full pl-14 pr-6 py-5 bg-brand-ultra-light border-transparent rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-brand/5 outline-none font-bold text-lg" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                </div>
+               {!isRegister && (
+                 <Link href="/recover-password" title="¿Has olvidado tu contraseña?" className="text-[10px] font-bold text-brand-light hover:text-brand uppercase tracking-widest ml-1 inline-block mt-2">
+                   ¿Has olvidado tu contraseña?
+                 </Link>
+               )}
             </div>
           </div>
 
