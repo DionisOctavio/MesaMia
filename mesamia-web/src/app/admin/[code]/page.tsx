@@ -210,14 +210,14 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-brand-ultra-light py-6 md:py-10 px-4 md:px-6 font-sans text-brand text-left">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 print:hidden">
           <Link href="/dashboard" className="inline-flex items-center gap-2 text-brand-light font-black mb-0 text-[10px] uppercase tracking-widest hover:text-brand transition-colors">
             <ArrowLeft className="w-4 h-4" /> Mis Cenas
           </Link>
           <Image src="/logo-color.png" alt="Mesa Mía" width={100} height={30} style={{ height: 'auto' }} className="opacity-70" priority />
         </div>
 
-        <header className="mb-8 md:mb-12">
+        <header className="mb-8 md:mb-12 print:hidden">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-brand-light font-black tracking-widest uppercase text-[9px] mb-2 leading-none">
@@ -226,24 +226,24 @@ export default function AdminPage() {
               <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-brand uppercase tracking-tight leading-none mb-2 truncate">{dinner.name}</h1>
               <p className="text-slate-600 font-bold text-sm tracking-tight">{dinner.restaurant} • <span className="text-brand select-all font-mono bg-brand-ultra-light px-2 py-1 rounded-lg ml-1">{dinner.code}</span></p>
             </div>
-            <div className="grid grid-cols-2 lg:flex gap-2 sm:gap-3 w-full sm:w-auto flex-shrink-0">
-              <Link href={`/admin/${code}/edit`} className="px-3 sm:px-6 py-3 sm:py-4 bg-white text-brand border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-[10px] sm:text-xs uppercase tracking-widest transition-all hover:bg-slate-50 shadow-md">
-                <Utensils className="w-4 h-4" /> <span>Carta</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:flex gap-2 sm:gap-3 w-full lg:w-auto flex-shrink-0">
+              <Link href={`/admin/${code}/edit`} className="w-full px-2 sm:px-6 py-3 sm:py-4 bg-white text-brand border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-1.5 sm:gap-2 text-[9px] sm:text-xs uppercase tracking-widest transition-all hover:bg-slate-50 shadow-md">
+                <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> <span className="truncate">Carta</span>
               </Link>
-              <button onClick={handleShare} className={`px-3 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-md text-[10px] sm:text-xs uppercase tracking-widest ${sharing ? 'bg-emerald-500 text-white' : 'bg-white text-brand border border-slate-100'}`}>
-                <Share2 className="w-4 h-4" /> {sharing ? 'OK' : 'Invitar'}
+              <button onClick={handleShare} className={`w-full px-2 sm:px-6 py-3 sm:py-4 rounded-2xl font-black flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-md text-[9px] sm:text-xs uppercase tracking-widest ${sharing ? 'bg-emerald-500 text-white' : 'bg-white text-brand border border-slate-100'}`}>
+                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> <span className="truncate">{sharing ? 'OK' : 'Invitar'}</span>
               </button>
-              <button onClick={handleShareAdmin} className="px-3 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-2 text-[10px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all print:hidden">
-                <ShieldCheck className="w-4 h-4" /> <span className="hidden sm:inline">Admin</span>
+              <button onClick={handleShareAdmin} className="w-full px-2 sm:px-6 py-3 sm:py-4 bg-white text-brand-light border border-slate-100 rounded-2xl font-black flex items-center justify-center gap-1.5 sm:gap-2 text-[9px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 shadow-md transition-all print:hidden">
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> <span className="truncate">Admin</span>
               </button>
-              <button onClick={() => window.print()} className="px-3 sm:px-6 py-3 sm:py-4 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 text-[10px] sm:text-xs uppercase tracking-widest shadow-xl shadow-brand/20 print:hidden">
-                <Download className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
+              <button onClick={() => window.print()} className="w-full px-2 sm:px-6 py-3 sm:py-4 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-1.5 sm:gap-2 text-[9px] sm:text-xs uppercase tracking-widest shadow-xl shadow-brand/20 print:hidden">
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> <span className="truncate">PDF</span>
               </button>
             </div>
           </div>
         </header>
 
-        <div className="mb-8 flex flex-wrap items-center gap-4">
+        <div className="mb-8 flex flex-wrap items-center gap-4 print:hidden">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Organizadores:</span>
             <div className="flex -space-x-2">
@@ -261,7 +261,7 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 gap-6 md:gap-8 print:hidden">
           {/* Top Section: Quick Stats and Kitchen Summary */}
           <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-1 space-y-6">
@@ -290,10 +290,10 @@ export default function AdminPage() {
                   <h3 className="text-lg font-black uppercase tracking-tight text-brand flex items-center gap-3">
                     <ListChecks className="w-6 h-6 text-brand/30" /> Resumen Cocina
                   </h3>
-                  <div className="flex flex-wrap items-center bg-brand-ultra-light p-1 rounded-2xl gap-1">
-                    <button onClick={() => setSummaryTab('aggregated')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'aggregated' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Cantidades</button>
-                    <button onClick={() => setSummaryTab('individual')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'individual' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Individual</button>
-                    <button onClick={() => setSummaryTab('categories')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'categories' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Categorías</button>
+                  <div className="flex overflow-x-auto md:flex-wrap items-center bg-brand-ultra-light p-1 rounded-2xl gap-1 w-full sm:w-auto custom-scrollbar">
+                    <button onClick={() => setSummaryTab('aggregated')} className={`flex-shrink-0 px-2 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'aggregated' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Cantidades</button>
+                    <button onClick={() => setSummaryTab('individual')} className={`flex-shrink-0 px-2 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'individual' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Individual</button>
+                    <button onClick={() => setSummaryTab('categories')} className={`flex-shrink-0 px-2 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${summaryTab === 'categories' ? 'bg-brand text-white shadow-md' : 'text-brand/40 hover:text-brand'}`}>Categorías</button>
                   </div>
                 </div>
 
@@ -369,7 +369,7 @@ export default function AdminPage() {
                   <button onClick={() => setViewMode('list')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${viewMode === 'list' ? 'bg-white text-brand shadow-sm' : 'text-slate-400 hover:text-brand'}`}>Lista</button>
                 </div>
               </div>
-              <div className="relative w-full sm:w-auto min-w-[300px]">
+              <div className="relative w-full sm:w-auto sm:min-w-[300px]">
                 <input
                   type="text"
                   placeholder="Buscar grupo o persona..."
@@ -503,6 +503,73 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ── Printable Orders Section (Only visible when printing) ── */}
+        <div className="hidden print:block w-full">
+          <div className="text-center mb-8 border-b-2 border-black pb-4">
+            <h1 className="text-3xl font-black uppercase tracking-tight text-black mb-1">{dinner.name}</h1>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+              Comandas por Grupo
+            </p>
+          </div>
+          
+          <div className="space-y-8">
+            {families.map((family: any) => {
+              const familyPeople = family.people || [];
+              if (familyPeople.length === 0) return null;
+
+              return (
+                <div key={family.id} className="border border-slate-200 rounded-xl p-6 break-inside-avoid">
+                  <div className="flex justify-between items-end mb-4 border-b border-slate-100 pb-2">
+                    <h2 className="text-xl font-black uppercase tracking-tight text-black">{family.name}</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      {familyPeople.length} personas
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {familyPeople.map((p: any) => {
+                      const items: { name: string, qty: number }[] = [];
+                      if (dinner.mode === 'MENU' && p.order) {
+                        if (p.order.starter) items.push({ name: p.order.starter, qty: 1 });
+                        if (p.order.main) items.push({ name: p.order.main, qty: 1 });
+                        if (p.order.dessert) items.push({ name: p.order.dessert, qty: 1 });
+                        if (p.order.drink) items.push({ name: p.order.drink, qty: 1 });
+                      } else if (p.order) {
+                        try {
+                          const cartaItems = JSON.parse(p.order.cartaItems || '[]');
+                          cartaItems.forEach((x: any) => {
+                            const name = typeof x === 'string' ? x : x.name;
+                            const qty = typeof x === 'string' ? 1 : (x.quantity || 1);
+                            items.push({ name, qty });
+                          });
+                        } catch { }
+                      }
+
+                      return (
+                        <div key={p.id} className="pl-2 border-l-2 border-brand/20">
+                          <div className="font-black uppercase text-xs mb-1 text-black">{p.name}</div>
+                          {items.length > 0 ? (
+                            <ul className="text-[11px] font-bold text-slate-700 space-y-0.5 ml-2">
+                              {items.map((it, idx) => (
+                                <li key={idx} className="flex gap-2">
+                                  {it.qty > 1 && <span className="text-brand font-black">{it.qty}x</span>}
+                                  <span>{it.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Sin pedido</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
       </div>
 
