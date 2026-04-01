@@ -647,6 +647,123 @@ export default function AdminPage() {
 
       </div>
 
+        {/* ── Waiter Mode Modal ────────────────────────────── */}
+        {waiterFamily && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => !waiterSaving && setWaiterFamily(null)} />
+            <div className="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-4xl bg-brand-ultra-light md:rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-6 md:p-10 bg-white border-b border-slate-100 flex justify-between items-center shrink-0">
+                <div>
+                  <div className="flex items-center gap-2 text-brand-light font-black uppercase text-[10px] tracking-widest mb-1">
+                    <Utensils className="w-4 h-4" /> Modo Camarero
+                  </div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-brand">Grupo: {waiterFamily.name}</h3>
+                </div>
+                <button onClick={() => setWaiterFamily(null)} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all font-bold">×</button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar">
+                {waiterFamily.people.map((p: any) => {
+                  const currentOrder = waiterOrders[p.id];
+                  const pSubtotal = dinner.mode === 'MENU' ? numericPrice : currentOrder.cartaItems.reduce((acc: number, item: any) => {
+                    const prod = allProducts.find((ap: any) => ap.name === item.name);
+                    return acc + (parseFloat(prod?.price || '0') * item.quantity);
+                  }, 0);
+
+                  return (
+                    <div key={p.id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-50">
+                      <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-50">
+                        <span className="text-lg font-black uppercase tracking-tight text-brand">{p.name}</span>
+                        <span className="px-4 py-2 bg-brand text-white rounded-xl font-black text-sm">{pSubtotal.toFixed(1)}€</span>
+                      </div>
+
+                      {dinner.mode === 'MENU' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {[
+                            { label: 'Entrante', key: 'starter', options: (dinner.starters || '').split(',').map((s: any) => s.trim()) },
+                            { label: 'Principal', key: 'main', options: (dinner.mains || '').split(',').map((s: any) => s.trim()) },
+                            { label: 'Postre', key: 'dessert', options: (dinner.desserts || '').split(',').map((s: any) => s.trim()) },
+                            { label: 'Bebida', key: 'drink', options: (dinner.drinks || '').split(',').map((s: any) => s.trim()) }
+                          ].map(field => (
+                            <div key={field.key} className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">{field.label}</label>
+                              <select 
+                                className="w-full p-4 bg-brand-ultra-light rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-brand"
+                                value={currentOrder[field.key]}
+                                onChange={(e) => updateWaiterOrder(p.id, field.key, e.target.value)}
+                              >
+                                <option value="">--- Seleccionar ---</option>
+                                {field.options.filter(Boolean).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          <div className="flex flex-wrap gap-2">
+                            {currentOrder.cartaItems.map((item: any, i: number) => (
+                              <div key={i} className="flex items-center gap-3 bg-brand-ultra-light py-2 px-4 rounded-xl border border-brand/10">
+                                <span className="font-bold text-xs">{item.name}</span>
+                                <div className="flex bg-white rounded-lg shadow-sm border border-slate-100 p-0.5">
+                                  <button onClick={() => updateWaiterCartaQty(p.id, item.name, -1)} className="w-6 h-6 flex items-center justify-center text-brand font-black hover:bg-slate-50 rounded-md">-</button>
+                                  <span className="w-6 text-center text-[10px] font-black self-center">{item.quantity}</span>
+                                  <button onClick={() => updateWaiterCartaQty(p.id, item.name, 1)} className="w-6 h-6 flex items-center justify-center text-brand font-black hover:bg-slate-50 rounded-md">+</button>
+                                </div>
+                              </div>
+                            ))}
+                            {currentOrder.cartaItems.length === 0 && <p className="text-xs font-bold text-slate-300 uppercase tracking-widest italic py-2">Sin platos seleccionados</p>}
+                          </div>
+                          
+                          <div className="pt-4 mt-4 border-t border-slate-50">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 block mb-3">Añadir plato</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                              {allProducts.map((prod: any, i: number) => (
+                                <button 
+                                  key={i} 
+                                  onClick={() => updateWaiterCartaQty(p.id, prod.name, 1)}
+                                  className="p-3 bg-slate-50 hover:bg-brand hover:text-white rounded-xl text-[10px] font-bold text-left transition-all border border-slate-100 flex flex-col justify-between"
+                                >
+                                  <span className="line-clamp-2">{prod.name}</span>
+                                  <span className="text-[9px] opacity-60 mt-1">{prod.price}€</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="p-6 md:p-10 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between shrink-0">
+                <div className="text-center sm:text-left">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total del Grupo</p>
+                  <p className="text-3xl font-black text-brand">
+                    {Object.entries(waiterOrders).reduce((acc, [pId, order]) => {
+                      if (dinner.mode === 'MENU') return acc + numericPrice;
+                      return acc + (order.cartaItems || []).reduce((acc2: number, item: any) => {
+                        const prod = allProducts.find((ap: any) => ap.name === item.name);
+                        return acc2 + (parseFloat(prod?.price || '0') * item.quantity);
+                      }, 0);
+                    }, 0).toFixed(1)}€
+                  </p>
+                </div>
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <button onClick={() => setWaiterFamily(null)} disabled={waiterSaving} className="flex-1 sm:flex-none px-10 py-5 bg-slate-100 text-slate-500 font-black rounded-2xl uppercase text-xs tracking-widest hover:bg-slate-200 transition-all">Cancelar</button>
+                  <button 
+                    onClick={saveWaiterOrders} 
+                    disabled={waiterSaving} 
+                    className="flex-[2] sm:flex-none px-12 py-5 bg-brand text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-xl shadow-brand/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {waiterSaving ? 'Guardando...' : <><Check className="w-5 h-5" /> Guardar Cambios</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       {/* ── Admin Code Modal ─────────────────────────────── */}
       {adminCodeModal && dinner?.adminCode && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
