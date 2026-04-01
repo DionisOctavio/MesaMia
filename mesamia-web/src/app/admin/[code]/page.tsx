@@ -22,6 +22,9 @@ export default function AdminPage() {
   const [newPhone, setNewPhone] = useState('');
   const [summaryTab, setSummaryTab] = useState<'aggregated' | 'individual' | 'categories'>('aggregated');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [waiterFamily, setWaiterFamily] = useState<any>(null);
+  const [waiterOrders, setWaiterOrders] = useState<Record<string, any>>({});
+  const [waiterSaving, setWaiterSaving] = useState(false);
 
   const fetchDinner = () => {
     api.get(`/dinners/${code}`).then(setDinner).finally(() => setLoading(false));
@@ -93,6 +96,67 @@ export default function AdminPage() {
     }
   };
 
+  const handleOpenWaiter = (family: any) => {
+    const orders: Record<string, any> = {};
+    family.people.forEach((p: any) => {
+      let cartaItems = [];
+      try {
+        cartaItems = JSON.parse(p.order?.cartaItems || '[]');
+      } catch { }
+
+      orders[p.id] = {
+        starter: p.order?.starter || '',
+        main: p.order?.main || '',
+        dessert: p.order?.dessert || '',
+        drink: p.order?.drink || '',
+        cartaItems: Array.isArray(cartaItems) ? (typeof cartaItems[0] === 'string' ? cartaItems.map(n => ({ name: n, quantity: 1 })) : cartaItems) : []
+      };
+    });
+    setWaiterOrders(orders);
+    setWaiterFamily(family);
+  };
+
+  const updateWaiterOrder = (personId: string, field: string, value: any) => {
+    setWaiterOrders(prev => ({
+      ...prev,
+      [personId]: { ...prev[personId], [field]: value }
+    }));
+  };
+
+  const updateWaiterCartaQty = (personId: string, name: string, delta: number) => {
+    const current = waiterOrders[personId]?.cartaItems || [];
+    const existing = current.find((i: any) => i.name === name);
+    let next = [...current];
+    if (existing) {
+      next = next.map((i: any) => i.name === name ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i).filter((i: any) => i.quantity > 0);
+    } else if (delta > 0) {
+      next.push({ name, quantity: delta });
+    }
+    updateWaiterOrder(personId, 'cartaItems', next);
+  };
+
+  const saveWaiterOrders = async () => {
+    setWaiterSaving(true);
+    try {
+      await Promise.all(
+        Object.entries(waiterOrders).map(([personId, order]) =>
+          api.patch('/orders', {
+            personId,
+            ...order,
+            cartaItems: JSON.stringify(order.cartaItems)
+          })
+        )
+      );
+      toast.success('Pedidos actualizados');
+      setWaiterFamily(null);
+      fetchDinner();
+    } catch {
+      toast.error('Error al guardar los pedidos');
+    } finally {
+      setWaiterSaving(false);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-brand text-white flex items-center justify-center font-black uppercase text-xs tracking-[0.2em] px-6 text-center">
       Cargando Panel...
@@ -103,7 +167,15 @@ export default function AdminPage() {
 
   const families = dinner.families || [];
   const people = families.flatMap((f: any) => f.people || []);
-  const orders = people.map((p: any) => p.order).filter(Boolean);
+
+  const ordersCount = people.filter((p: any) => {
+    if (!p.order) return false;
+    if (dinner.mode === 'MENU') return !!p.order.starter;
+    try {
+      const items = JSON.parse(p.order.cartaItems || '[]');
+      return Array.isArray(items) && items.length > 0;
+    } catch { return false; }
+  }).length;
 
   const numericPrice = parseFloat((dinner.menuPrice || '0').toString().replace(',', '.')) || 0;
 
@@ -116,14 +188,15 @@ export default function AdminPage() {
     let total = 0;
     try {
       const cartaProducts = JSON.parse(dinner.cartaProducts || '[]');
-      const allProducts = cartaProducts.flatMap((cat: any) => cat.products || []);
-      orders.forEach((o: any) => {
+      const allProductsFlat = cartaProducts.flatMap((cat: any) => cat.products || []);
+      people.forEach((p: any) => {
+        if (!p.order) return;
         try {
-          const items = JSON.parse(o.cartaItems || '[]');
+          const items = JSON.parse(p.order.cartaItems || '[]');
           items.forEach((item: any) => {
             const itemName = typeof item === 'string' ? item : item.name;
             const itemQty = typeof item === 'string' ? 1 : (item.quantity || 1);
-            const prod = allProducts.find((ap: any) => ap.name === itemName);
+            const prod = allProductsFlat.find((ap: any) => ap.name === itemName);
             if (prod) total += parseFloat((prod.price || '0').toString().replace(',', '.')) * itemQty;
           });
         } catch { }
@@ -269,7 +342,7 @@ export default function AdminPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-4">
                 {[
                   { icon: Users, label: 'Personas', value: people.length },
-                  { icon: Utensils, label: 'Pedidos', value: orders.length },
+                  { icon: Utensils, label: 'Pedidos', value: ordersCount },
                   { icon: CreditCard, label: 'Importe', value: `${totalMoney.toFixed(1)}€` },
                 ].map((stat, i) => (
                   <div key={i} className="p-4 sm:p-6 bg-white rounded-3xl border border-slate-50 shadow-sm flex items-center gap-3 sm:gap-4 transition-all hover:scale-[1.02]">
@@ -385,11 +458,14 @@ export default function AdminPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredFamilies.map((family: any) => (
                   <div key={family.id} className="bg-white rounded-[2.5rem] p-6 border border-slate-50 shadow-sm relative group/card flex flex-col">
-                    <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                      <button onClick={() => handleEditPhone(family)} className="p-2 text-slate-300 hover:text-brand transition-colors" title="Editar teléfono">
+                    <div className="absolute top-4 right-4 flex gap-1">
+                      <button onClick={() => handleOpenWaiter(family)} className="p-2 text-slate-300 hover:text-brand transition-colors bg-slate-50 hover:bg-brand-ultra-light rounded-xl" title="Modo Camarero">
+                         <Utensils className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleEditPhone(family)} className="p-2 text-slate-300 hover:text-brand transition-colors bg-slate-50 hover:bg-brand-ultra-light rounded-xl" title="Editar teléfono">
                         <Phone className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 text-red-100 hover:text-red-500 transition-colors" title="Expulsar grupo">
+                      <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 text-slate-200 hover:text-red-500 bg-slate-50 hover:bg-red-50 rounded-xl transition-colors" title="Expulsar grupo">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -420,9 +496,6 @@ export default function AdminPage() {
 
                     <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase text-brand/40 tracking-widest">{family.people?.length || 0} PERSONAS</span>
-                      <Link href={`/dinner/${code}`} className="text-[10px] font-black uppercase text-brand flex items-center gap-1 hover:underline">
-                        Invitado <ArrowLeft className="w-3 h-3 rotate-180" />
-                      </Link>
                     </div>
                   </div>
                 ))}
@@ -462,6 +535,7 @@ export default function AdminPage() {
                             </td>
                             <td className="p-6 text-right">
                               <div className="flex justify-end gap-2">
+                                <button onClick={() => handleOpenWaiter(family)} className="p-2 bg-brand-ultra-light rounded-xl text-brand hover:bg-brand hover:text-white transition-all" title="Modo Camarero"><Utensils className="w-3.5 h-3.5" /></button>
                                 <button onClick={() => handleEditPhone(family)} className="p-2 bg-slate-100 rounded-xl text-slate-500 hover:bg-brand hover:text-white transition-all"><Phone className="w-3.5 h-3.5" /></button>
                                 <button onClick={() => handleDeleteFamily(family.id, family.name)} className="p-2 bg-red-50 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>

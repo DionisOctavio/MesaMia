@@ -212,45 +212,51 @@ export default function EditDinner() {
                     </div>
                  </div>
                ) : (
-                 <div className="space-y-8">
+                 <div className="space-y-6">
                   {categories.map((cat, catIdx) => (
-                    <div key={catIdx} className="bg-brand-ultra-light/50 p-8 rounded-[2.5rem] space-y-6 border border-brand/5 relative group">
-                      <button type="button" onClick={() => removeCategory(catIdx)} className="absolute top-6 right-6 text-red-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-5 h-5" /></button>
-                      
-                      <div className="flex flex-col md:flex-row gap-6 items-start">
-                         <div className="flex-1 space-y-2">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-brand block ml-1">Nombre de la Categoría</label>
-                            <input type="text" placeholder="Ej: CARNES o PARA COMPARTIR" className="w-full px-6 py-4 bg-white rounded-2xl font-black text-lg outline-none uppercase" value={cat.name} onChange={e => updateCategoryName(catIdx, e.target.value)} />
-                         </div>
+                    <div key={catIdx} className="bg-white border-2 border-slate-50 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                      <div className="bg-slate-50/50 p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                        <div className="flex-1 w-full sm:w-auto">
+                           <label className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 block ml-1 mb-1">Categoría</label>
+                           <input type="text" placeholder="Ej: CARNES o PARA COMPARTIR" className="w-full px-4 py-2 bg-white rounded-xl font-black text-sm outline-none border border-transparent focus:border-brand transition-all uppercase" value={cat.name} onChange={e => updateCategoryName(catIdx, e.target.value)} />
+                        </div>
+                        <button type="button" onClick={() => removeCategory(catIdx)} className="flex items-center gap-2 px-4 py-2 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest"><Trash2 className="w-3.5 h-3.5" /> Borrar Categoría</button>
                       </div>
 
-                      <div className="space-y-4 pl-4 border-l-2 border-brand/10">
-                        {cat.products.map((prod, prodIdx) => (
-                          <div key={prodIdx} className="bg-white p-6 rounded-3xl shadow-sm space-y-4">
-                            <div className="flex gap-4 items-center">
-                              <input type="text" placeholder="Nombre del plato..." className="flex-1 px-4 py-2 border-b-2 border-transparent focus:border-brand outline-none font-bold" value={prod.name} onChange={e => updateProduct(catIdx, prodIdx, 'name', e.target.value)} />
-                              <input type="text" placeholder="Precio" className="w-24 px-4 py-2 bg-brand-ultra-light rounded-xl font-black text-right outline-none" value={prod.price} onChange={e => updateProduct(catIdx, prodIdx, 'price', e.target.value)} />
-                              <button type="button" onClick={() => removeProduct(catIdx, prodIdx)} className="text-slate-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                      <div className="p-4 sm:p-6 space-y-3 bg-white">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          {cat.products.map((prod, prodIdx) => (
+                            <div key={prodIdx} className="bg-brand-ultra-light/30 p-4 rounded-2xl border border-transparent hover:border-brand/10 transition-all space-y-3 relative group/prod">
+                              <div className="flex gap-3 items-start">
+                                <div className="flex-1">
+                                  <input type="text" placeholder="Nombre del plato..." className="w-full bg-transparent border-b border-slate-200 focus:border-brand outline-none font-bold text-sm py-1" value={prod.name} onChange={e => updateProduct(catIdx, prodIdx, 'name', e.target.value)} />
+                                </div>
+                                <div className="flex items-center gap-1.5 min-w-[70px]">
+                                  <input type="text" placeholder="0.0" className="w-full px-2 py-1 bg-white rounded-lg font-black text-xs text-right outline-none border border-slate-100" value={prod.price} onChange={e => updateProduct(catIdx, prodIdx, 'price', e.target.value)} />
+                                  <span className="text-[10px] font-black text-slate-300">€</span>
+                                </div>
+                                <button type="button" onClick={() => removeProduct(catIdx, prodIdx)} className="text-slate-200 hover:text-red-500 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {ALLERGENS.map(all => (
+                                  <button key={all.id} type="button" onClick={() => toggleAllergen(catIdx, prodIdx, all.id)} title={all.name} className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all ${prod.allergens.includes(all.id) ? 'bg-brand text-white scale-105 shadow-sm' : 'bg-white text-slate-200 grayscale opacity-40 hover:opacity-80 hover:grayscale-0 border border-slate-50'}`}>
+                                    {all.icon}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                            
-                            <div className="flex flex-wrap gap-2">
-                              {ALLERGENS.map(all => (
-                                <button key={all.id} type="button" onClick={() => toggleAllergen(catIdx, prodIdx, all.id)} title={all.name} className={`w-8 h-8 flex items-center justify-center rounded-lg text-lg transition-all ${prod.allergens.includes(all.id) ? 'bg-brand text-white scale-110 shadow-md' : 'bg-slate-50 text-slate-300 grayscale opacity-40 hover:opacity-100 hover:grayscale-0'}`}>
-                                  {all.icon}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                        <button type="button" onClick={() => addProduct(catIdx)} className="w-full py-4 border-2 border-dashed border-brand/10 text-brand font-black rounded-2xl hover:bg-white transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-                          <Plus className="w-4 h-4" /> Añadir plato a {cat.name || 'Categoría'}
+                          ))}
+                        </div>
+                        <button type="button" onClick={() => addProduct(catIdx)} className="w-full py-3 border-2 border-dashed border-slate-100 text-slate-300 hover:text-brand hover:border-brand/20 hover:bg-slate-50 transition-all text-[9px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center gap-2">
+                          <Plus className="w-3.5 h-3.5" /> Añadir plato a {cat.name || 'esta categoría'}
                         </button>
                       </div>
                     </div>
                   ))}
                   
-                  <button type="button" onClick={addCategory} className="w-full py-6 bg-brand text-white font-black rounded-[2rem] hover:bg-brand-light transition-all shadow-xl shadow-brand/10 flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em]">
-                    <Plus className="w-5 h-5" /> Añadir Nueva Categoría
+                  <button type="button" onClick={addCategory} className="w-full py-5 bg-white border-2 border-brand text-brand font-black rounded-2xl hover:bg-brand hover:text-white transition-all shadow-lg flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em]">
+                    <Plus className="w-4 h-4" /> Nueva Categoría de la Carta
                   </button>
                  </div>
                )}
