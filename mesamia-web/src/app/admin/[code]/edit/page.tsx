@@ -224,26 +224,54 @@ export default function EditDinner() {
                       </div>
 
                       <div className="p-4 sm:p-6 space-y-3 bg-white">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {cat.products.map((prod, prodIdx) => (
-                            <div key={prodIdx} className="bg-brand-ultra-light/30 p-4 rounded-2xl border border-transparent hover:border-brand/10 transition-all space-y-3 relative group/prod">
-                              <div className="flex gap-3 items-start">
-                                <div className="flex-1">
-                                  <input type="text" placeholder="Nombre del plato..." className="w-full bg-transparent border-b border-slate-200 focus:border-brand outline-none font-bold text-sm py-1" value={prod.name} onChange={e => updateProduct(catIdx, prodIdx, 'name', e.target.value)} />
+                            <div key={prodIdx} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:border-brand/40 transition-all space-y-4 relative group/prod">
+                              <button type="button" onClick={() => removeProduct(catIdx, prodIdx)} className="absolute -top-2 -right-2 w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/prod:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm z-10">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+
+                              <div className="flex gap-4 items-end">
+                                <div className="flex-1 space-y-1.5">
+                                  <label className="text-[8px] font-black uppercase text-slate-400 ml-1">Nombre del Plato</label>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Ej: Chuletón de Ávila..." 
+                                    className="w-full bg-slate-50 border-transparent focus:bg-white focus:border-brand outline-none font-bold text-sm px-4 py-2.5 rounded-xl transition-all" 
+                                    value={prod.name} 
+                                    onChange={e => updateProduct(catIdx, prodIdx, 'name', e.target.value)} 
+                                  />
                                 </div>
-                                <div className="flex items-center gap-1.5 min-w-[70px]">
-                                  <input type="text" placeholder="0.0" className="w-full px-2 py-1 bg-white rounded-lg font-black text-xs text-right outline-none border border-slate-100" value={prod.price} onChange={e => updateProduct(catIdx, prodIdx, 'price', e.target.value)} />
-                                  <span className="text-[10px] font-black text-slate-300">€</span>
+                                <div className="w-24 space-y-1.5">
+                                  <label className="text-[8px] font-black uppercase text-slate-400 ml-1">Precio</label>
+                                  <div className="relative">
+                                    <input 
+                                      type="text" 
+                                      placeholder="0.00" 
+                                      className="w-full pl-3 pr-8 py-2.5 bg-slate-50 rounded-xl font-black text-sm text-right outline-none border border-transparent focus:border-brand focus:bg-white transition-all" 
+                                      value={prod.price} 
+                                      onChange={e => updateProduct(catIdx, prodIdx, 'price', e.target.value)} 
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">€</span>
+                                  </div>
                                 </div>
-                                <button type="button" onClick={() => removeProduct(catIdx, prodIdx)} className="text-slate-200 hover:text-red-500 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                               
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                {ALLERGENS.map(all => (
-                                  <button key={all.id} type="button" onClick={() => toggleAllergen(catIdx, prodIdx, all.id)} title={all.name} className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all ${prod.allergens.includes(all.id) ? 'bg-brand text-white scale-105 shadow-sm' : 'bg-white text-slate-200 grayscale opacity-40 hover:opacity-80 hover:grayscale-0 border border-slate-50'}`}>
-                                    {all.icon}
-                                  </button>
-                                ))}
+                              <div className="pt-2 border-t border-slate-50">
+                                <label className="text-[8px] font-black uppercase text-slate-300 ml-1 mb-2 block">Alérgenos</label>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {ALLERGENS.map(all => (
+                                    <button 
+                                      key={all.id} 
+                                      type="button" 
+                                      onClick={() => toggleAllergen(catIdx, prodIdx, all.id)} 
+                                      title={all.name} 
+                                      className={`w-8 h-8 flex items-center justify-center rounded-xl text-sm transition-all ${prod.allergens.includes(all.id) ? 'bg-brand text-white shadow-md scale-110' : 'bg-slate-50/50 text-slate-200 grayscale opacity-40 hover:opacity-100 hover:grayscale-0 border border-slate-100'}`}
+                                    >
+                                      {all.icon}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           ))}
